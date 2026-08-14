@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Compile circuits and run proof-server tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Noir/Barretenberg toolchains
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nargo
+            ~/.bb
+          key: ${{ runner.os }}-noir-1.0.0-beta.22-bb-5.0.0-nightly.20260522
+
+      - name: Install nargo
+        run: |
+          curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
+          echo "$HOME/.nargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.nargo/bin/noirup" -v 1.0.0-beta.22
+
+      - name: Install bb
+        run: |
+          curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/master/barretenberg/bbup/install | bash
+          echo "$HOME/.bb" >> "$GITHUB_PATH"
+          PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH" "$HOME/.bb/bbup"
+
+      - name: Compile circuits
+        run: |
+          export PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH"
+          (cd circuits/hash_util && nargo compile)
+          (cd circuits/payroll_compliance && nargo compile)
+
+      - name: Run tests
+        run: |
+          export PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH"
+          npm test
