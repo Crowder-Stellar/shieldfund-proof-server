@@ -1,0 +1,15 @@
+{
+  "name": "shieldfund-proof-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Off-chain Noir proof server for ShieldFund's payroll/budget compliance ZK proofs — generates and locally verifies proofs, then anchors their hashes to the proof_registry Soroban contract.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "js-sha3": "^0.9.3"
+  }
+}

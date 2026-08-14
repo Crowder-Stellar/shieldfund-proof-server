@@ -1,0 +1,6 @@
+[package]
+name = "payroll_compliance"
+type = "bin"
+authors = [""]
+
+[dependencies]

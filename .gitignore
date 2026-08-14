@@ -1,0 +1,3 @@
+node_modules/
+circuits/*/target/
+.env
