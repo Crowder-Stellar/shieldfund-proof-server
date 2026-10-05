@@ -16,24 +16,6 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ---
 
-## 0. Account & machine security (P0 — before any other work)
-
-- [ ] **1. Secure your GitHub account.** Change your password, sign out all sessions
-  (Settings → Sessions), and enable 2FA with an authenticator app or passkey (not SMS).
-- [ ] **2. Revoke every token.** Delete all personal access tokens (classic and fine-grained) and SSH keys
-  you don't recognise or no longer need; re-create only what you use, with minimal scopes and an expiry.
-- [ ] **3. Audit authorized apps.** Settings → Applications → Authorized OAuth Apps / GitHub Apps — revoke
-  anything unfamiliar, especially apps with `repo` or `workflow` scope.
-- [ ] **4. Check your machine.** The payload targets developer environments. Run a full malware scan, check
-  for unknown global npm packages (`npm ls -g --depth=0`), unknown VS Code extensions, and odd entries in
-  shell rc files / startup items. If in doubt, reinstall the OS.
-- [ ] **5. Check your own repos.** Search every repo you own or have pushed to since September for the same
-  pattern (a line ending in hundreds of spaces followed by `global.o=` or `_$_` identifiers). Report anything
-  you find to Ndii.
-- [ ] **6. Re-clone cleanly.** Delete your local `shieldfund-proof-server` clone and clone fresh from
-  `main`. Do **not** push any old local branches.
-- [ ] **7. Write a short incident note** (`docs/incidents/2026-09-22.md`): timeline, how the account was
-  likely compromised, what you changed in steps 1–6. Blameless — facts only.
 
 ## 1. Repository hardening (P0)
 
