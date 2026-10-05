@@ -1,8 +1,11 @@
 # Ndii's Tasks — shieldfund-proof-server & Crowder-Stellar org
 
 Owner/lead tasks following the 2026-09-22 force-push incident on `shieldfund-proof-server`, plus the
-cross-repo and org-level work that only an owner can do. Austin's list is in
+org-level and cross-repo work across all ShieldFund repos. Austin's list is in
 [`AUSTINS_TASK.md`](./AUSTINS_TASK.md).
+
+**Rules:** `main` is protected on every repo — one task = one branch = one PR, reviewed by Austin.
+Tick the box in the PR that completes the task.
 
 Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
@@ -10,57 +13,108 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 0. Incident cleanup (P0)
 
-- [ ] **1. Restore clean `main`.** Force-push the clean commit over the tampered one:
-  `git push --force-with-lease=main:0819bd7 origin main` (local `main` is the clean `7a56d35` + this file).
-- [ ] **2. Verify the payload is gone** on GitHub: `src/server.js` must end at `module.exports = app;` with
-  no trailing whitespace run.
-- [ ] **3. Protect `main` on this repo** (no force-push, no deletion, 1 approving review, enforce for
-  admins) — the other four repos are already protected.
-- [ ] **4. Check for deployments.** Confirm nothing (Render, VPS, a teammate's laptop) ran this repo from
-  `origin/main` between 2026-09-22 and the restore. If something did, treat that host as compromised.
+- [x] **1. Restore clean `main`.** Force-pushed `7a56d35` (+ task files) over the tampered `0819bd7`.
+- [x] **2. Verify the payload is gone** on GitHub: `src/server.js` ends at `module.exports = app;`.
+- [x] **3. Protect `main` on all 5 repos** — no force-push, no deletion, 1 review, enforced for admins.
+- [ ] **4. Check for deployments.** Confirm nothing (Render, VPS, a laptop) ran this repo from `origin/main`
+  between 2026-09-22 and the restore. If something did, treat that host as compromised.
 - [ ] **5. Talk to Austin directly** (not over GitHub) and walk through Section 0 of his list with him.
-- [ ] **6. Secure your own account too**: rotate your PATs, review authorized OAuth apps, confirm 2FA.
+- [ ] **6. Secure your own account**: rotate your PATs, review authorized OAuth apps, confirm 2FA.
+- [ ] **7. Scan your own machine** the same way Austin is asked to (global npm packages, editor
+  extensions, shell rc files).
+- [ ] **8. Delete the local `backup/clean-7a56d35` branch** if it exists and prune stale local branches in
+  all five clones.
 
 ## 1. Org security settings (P0)
 
-- [ ] **7. Require 2FA for all members** (org Settings → Authentication security).
-- [ ] **8. Enable secret scanning + push protection** for all repos, and for new repos by default.
-- [ ] **9. Enable Dependabot alerts and security updates** org-wide.
-- [ ] **10. Restrict destructive member permissions**: turn off "members can delete repositories" and
+- [ ] **9. Require 2FA for all members** (org Settings → Authentication security).
+- [ ] **10. Enable secret scanning + push protection** for all repos, and for new repos by default.
+- [ ] **11. Enable Dependabot alerts and security updates** org-wide.
+- [ ] **12. Restrict destructive member permissions**: turn off "members can delete repositories" and
   "members can change repository visibility".
-- [ ] **11. Review the org audit log** for 2026-09-01 → now: any other force-pushes, new tokens, new apps,
+- [ ] **13. Review the org audit log** for 2026-09-01 → now: other force-pushes, new tokens, new apps,
   membership or permission changes.
-- [ ] **12. Consider an org ruleset** instead of per-repo branch protection, so every new repo gets
-  protected `main` automatically.
+- [ ] **14. Replace per-repo protection with an org ruleset** so every new repo gets a protected `main`.
+- [ ] **15. Restrict GitHub Actions** to GitHub-owned and verified actions only (org → Actions → General).
+- [ ] **16. Set the default `GITHUB_TOKEN` to read-only** org-wide.
+- [ ] **17. Require signed commits** on `main` (SSH or GPG signing) — a spoofed author name like the one
+  in `0819bd7` would then show as "Unverified" and be rejected.
+- [ ] **18. Give the org a description, avatar, and verified domain** so it isn't mistaken for a
+  throwaway.
 
-## 2. Review & ownership (P1)
+## 2. Review & decisions (P1)
 
-- [ ] **13. Review Austin's PRs** against `AUSTINS_TASK.md`, P0 sections first; pay extra attention to
-  `.github/workflows/` and anything that touches `circuits/`.
-- [ ] **14. Decide salt handling** with Austin (his task #30): caller-supplied salt only, or salt returned
-  to an authenticated admin only.
-- [ ] **15. Decide the auth model** for `/api/prove` (his task #33): API key, signed requests, or only
-  callable from `shieldfund-backend` on a private network.
+- [ ] **19. Review Austin's PRs** against `AUSTINS_TASK.md`, P0 sections first; extra scrutiny on
+  `.github/workflows/` and `circuits/`.
+- [ ] **20. Decide salt handling** with Austin (his #30): caller-supplied salt only, or salt returned only to
+  an authenticated admin.
+- [ ] **21. Decide the auth model** for `/api/prove` (his #33): API key, signed requests, or only reachable
+  from `shieldfund-backend` on a private network.
+- [ ] **22. Write `CONTRIBUTING.md`** in `.github` (branch naming, PR template, review rules) and apply it
+  org-wide.
+- [ ] **23. Add a PR template** with a security checklist (no secrets, no long lines, no new deps without
+  review).
 
-## 3. Cross-repo integration (P1)
+## 3. shieldfund-contracts (P0/P1)
 
-- [ ] **16. Re-deploy `proof_registry`** once the circuit fixes land (Austin #17, #19, #20) — changed
-  circuits mean a new verification key; old proof hashes stay valid only for the old circuit.
-- [ ] **17. Close the anchoring loop.** The server returns `proofHash` but nothing calls
-  `proof_registry::register_proof()` automatically. Decide whether `shieldfund-backend` or this server
-  submits it, and restrict the submitter address on-chain.
-- [ ] **18. Wire `shieldfund-backend`** to call this server instead of accepting arbitrary proof hashes.
-- [ ] **19. Frontend:** confirm `ManualVerificationModal` in `shieldfund-frontend` handles the new 400
-  validation errors and the auth requirement.
+- [ ] **24. Protect `initialize()` from front-running.** `treasury_vault`, `proof_registry`, and `streaming`
+  all accept any `admin` with no `require_auth()`, so whoever calls first after deploy owns the contract.
+  Add `admin.require_auth()`, or deploy and initialize in one transaction from `scripts/deploy-testnet.sh`.
+- [ ] **25. Extend storage TTLs.** No contract calls `extend_ttl`, so instance and persistent entries
+  (admin, balances, proofs, streams) will be archived. Bump TTLs on every write and on reads of hot keys.
+- [ ] **26. Bind proofs to disbursements (critical).** `treasury_vault::disburse()` only checks that
+  `proof_hash` exists in the registry — it never checks the proof's `public_inputs_hash` against *this*
+  `recipient` and `amount`, and never marks the proof as spent. Any registered proof can pay any recipient
+  any amount, any number of times. Recompute and compare the public-inputs hash, and mark proofs consumed.
+- [ ] **27. Two-step admin transfer.** `transfer_admin()` sets the new admin immediately; switch to
+  propose → accept so a typo can't brick the contract.
+- [ ] **28. Emit events** for every state change — only `disburse` does today; add deposit, register_proof,
+  create/toggle/withdraw stream, and admin changes so the backend can index from events instead of polling.
+- [ ] **29. Replace `panic!` strings with `contracterror` enums** so clients get typed errors.
+- [ ] **30. Add overflow and edge-case tests**: zero/negative amounts, `i128` limits, stream end-time
+  boundaries, withdraw after completion.
+- [ ] **31. Pagination for `get_all_proofs` / `get_all_streams`.** Returning whole vectors will hit
+  resource limits as data grows.
+- [ ] **32. Re-deploy to testnet** after the circuit fixes (Austin #17, #19, #20) and update contract IDs in
+  backend, frontend, and the proof-server README.
+- [ ] **33. Get an external review** of the three contracts before any mainnet deployment.
 
-## 4. Roadmap (P2)
+## 4. shieldfund-backend (P1)
 
-- [ ] **20. On-chain verification research.** The README states the trust gap: `proof_registry` only
-  anchors hashes. Evaluate an UltraHonk verifier on Soroban vs. a multi-party attestation scheme, and write
-  up the decision.
-- [ ] **21. Raise allowlist capacity** beyond 16 (`DEPTH`) once in-process hashing (Austin #42) makes
-  bigger trees practical.
-- [ ] **22. Hosting:** pick where the proof server runs (needs nargo + bb; see Austin #49 Dockerfile) and
-  set up monitoring/alerts.
-- [ ] **23. Update the org profile README** (`.github`) with the security policy and contribution rules
-  (PR-only, reviews required).
+- [ ] **34. Implement `POST /proofs/verify`.** `src/routes/proofs.ts` has a `TODO: run Noir verifier`
+  — either forward to the proof server's `bb verify` or remove the endpoint. It must not return success
+  for unverified input.
+- [ ] **35. Lock down CORS.** `src/index.ts` uses `cors()` with no options (any origin). Allow only the
+  frontend's origins from env.
+- [ ] **36. Authenticate `POST /campaigns`** — anyone can currently create or overwrite campaigns
+  (`INSERT OR REPLACE`).
+- [ ] **37. Validate request bodies** with `zod` on every route.
+- [ ] **38. Add rate limiting** to all write routes.
+- [ ] **39. Protect the Pinata keys**: confirm they were never committed, rotate them, and scope them to
+  pin-only.
+- [ ] **40. Move from SQLite file to a managed DB** (or at least back up `data/shieldfund.db`) before
+  hosting.
+- [ ] **41. Close the anchoring loop.** Have the backend call the proof server, then submit
+  `register_proof()` from a dedicated submitter key — never accept a raw proof hash from the browser.
+
+## 5. shieldfund-frontend (P1)
+
+- [ ] **42. Handle the proof server's new 400/401 errors** in `src/lib/proofServer.ts` and
+  `ManualVerificationModal`.
+- [ ] **43. Never send budget caps or salts from the browser** to a server you don't control; route proof
+  requests through the backend.
+- [ ] **44. Add a Content-Security-Policy** (Vite/hosting headers) and audit third-party scripts.
+- [ ] **45. Replace `initialData.ts` mock data** with live contract/backend reads, or label demo mode
+  clearly in the UI.
+- [ ] **46. Rename the logo asset** (`shield_logo_1782492391347.jpg`) and remove unused assets.
+
+## 6. Ops & roadmap (P2)
+
+- [ ] **47. Pick hosting** for all three services (proof server needs nargo + bb; see Austin #49) with
+  separate staging and production.
+- [ ] **48. Monitoring and alerts**: uptime checks, error tracking, and an alert on any push to `main`
+  that bypasses review.
+- [ ] **49. On-chain verification research.** `proof_registry` only anchors hashes. Evaluate an
+  UltraHonk verifier on Soroban vs. multi-party attestation, and write up the decision.
+- [ ] **50. Update the org profile README** (`.github`) with the security policy, architecture diagram,
+  and contribution rules.
