@@ -21,7 +21,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 - [x] **8. Whitespace-padding guard in CI.** Add a CI step that fails if any tracked source file has a line
   longer than 300 chars or more than 20 consecutive trailing spaces (this is exactly how the payload hid).
-- [ ] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
+- [x] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
   `_$_[0-9a-f]{4}`, `Function("return this")`, or `eval(` anywhere under `src/` and `test/`.
 - [ ] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
   `setup-node@v4`, `cache@v4` with full SHAs (comment the version beside each).
