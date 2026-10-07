@@ -23,7 +23,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
   longer than 300 chars or more than 20 consecutive trailing spaces (this is exactly how the payload hid).
 - [x] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
   `_$_[0-9a-f]{4}`, `Function("return this")`, or `eval(` anywhere under `src/` and `test/`.
-- [ ] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
+- [x] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
   `setup-node@v4`, `cache@v4` with full SHAs (comment the version beside each).
 - [ ] **11. Stop `curl | bash` from `master`/`main`.** The CI installs noirup/bbup from moving branches.
   Pin to a tagged release URL and verify a checksum before executing.
