@@ -25,7 +25,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
   `_$_[0-9a-f]{4}`, `Function("return this")`, or `eval(` anywhere under `src/` and `test/`.
 - [x] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
   `setup-node@v4`, `cache@v4` with full SHAs (comment the version beside each).
-- [ ] **11. Stop `curl | bash` from `master`/`main`.** The CI installs noirup/bbup from moving branches.
+- [x] **11. Stop `curl | bash` from `master`/`main`.** The CI installs noirup/bbup from moving branches.
   Pin to a tagged release URL and verify a checksum before executing.
 - [ ] **12. Pin `bb` explicitly in CI.** `bbup` currently auto-resolves; call it with the exact version
   `5.0.0-nightly.20260522` so CI matches the README table.
