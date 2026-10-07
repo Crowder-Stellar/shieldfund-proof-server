@@ -19,7 +19,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 1. Repository hardening (P0)
 
-- [ ] **8. Whitespace-padding guard in CI.** Add a CI step that fails if any tracked source file has a line
+- [x] **8. Whitespace-padding guard in CI.** Add a CI step that fails if any tracked source file has a line
   longer than 300 chars or more than 20 consecutive trailing spaces (this is exactly how the payload hid).
 - [ ] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
   `_$_[0-9a-f]{4}`, `Function("return this")`, or `eval(` anywhere under `src/` and `test/`.

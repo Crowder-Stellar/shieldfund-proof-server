@@ -7,8 +7,19 @@ on:
     branches: [main]
 
 jobs:
+  guards:
+    name: Source guards
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Whitespace-padding guard
+        run: bash scripts/check-whitespace.sh
+
   test:
     name: Compile circuits and run proof-server tests
+    needs: guards
     runs-on: ubuntu-latest
 
     steps:
