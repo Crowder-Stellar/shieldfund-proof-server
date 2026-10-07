@@ -19,17 +19,17 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 1. Repository hardening (P0)
 
-- [ ] **8. Whitespace-padding guard in CI.** Add a CI step that fails if any tracked source file has a line
+- [x] **8. Whitespace-padding guard in CI.** Add a CI step that fails if any tracked source file has a line
   longer than 300 chars or more than 20 consecutive trailing spaces (this is exactly how the payload hid).
-- [ ] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
+- [x] **9. Obfuscation scanner in CI.** Fail the build on patterns like `global[...] = require`,
   `_$_[0-9a-f]{4}`, `Function("return this")`, or `eval(` anywhere under `src/` and `test/`.
-- [ ] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
+- [x] **10. Pin GitHub Actions to commit SHAs.** In `.github/workflows/ci.yml`, replace `actions/checkout@v4`,
   `setup-node@v4`, `cache@v4` with full SHAs (comment the version beside each).
-- [ ] **11. Stop `curl | bash` from `master`/`main`.** The CI installs noirup/bbup from moving branches.
+- [x] **11. Stop `curl | bash` from `master`/`main`.** The CI installs noirup/bbup from moving branches.
   Pin to a tagged release URL and verify a checksum before executing.
-- [ ] **12. Pin `bb` explicitly in CI.** `bbup` currently auto-resolves; call it with the exact version
+- [x] **12. Pin `bb` explicitly in CI.** `bbup` currently auto-resolves; call it with the exact version
   `5.0.0-nightly.20260522` so CI matches the README table.
-- [ ] **13. Least-privilege workflow token.** Add `permissions: contents: read` at the top of `ci.yml`.
+- [x] **13. Least-privilege workflow token.** Add `permissions: contents: read` at the top of `ci.yml`.
 - [ ] **14. Add `CODEOWNERS`.** Require review from both org members for `src/`, `circuits/`, and
   `.github/`.
 - [ ] **15. Add `SECURITY.md`.** How to report a vulnerability privately, and the response expectation.

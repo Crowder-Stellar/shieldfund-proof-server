@@ -82,7 +82,7 @@ curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
 noirup -v 1.0.0-beta.22
 
 curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/master/barretenberg/bbup/install | bash
-bbup   # auto-resolves the matching bb version from the installed nargo version
+bbup -v 5.0.0-nightly.20260522
 ```
 
 ## Quick start
