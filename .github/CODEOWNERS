@@ -1,0 +1,10 @@
+# Changes to these paths need a code-owner review before merging into main
+# (enforced when "Require review from Code Owners" is on in branch protection).
+# A PR author can't approve their own PR, so in practice the other owner reviews.
+
+/src/       @austinaminu2 @Ndifreke000
+/circuits/  @austinaminu2 @Ndifreke000
+/.github/   @austinaminu2 @Ndifreke000
+
+# CI guard scripts (whitespace-padding, obfuscation) — weakening them weakens CI.
+/scripts/   @austinaminu2 @Ndifreke000
