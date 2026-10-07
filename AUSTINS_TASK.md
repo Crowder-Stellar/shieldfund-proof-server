@@ -33,7 +33,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 - [x] **14. Add `CODEOWNERS`.** Require review from both org members for `src/`, `circuits/`, and
   `.github/`.
 - [x] **15. Add `SECURITY.md`.** How to report a vulnerability privately, and the response expectation.
-- [ ] **16. Enable Dependabot** (`.github/dependabot.yml`) for `npm` and `github-actions`, weekly.
+- [x] **16. Enable Dependabot** (`.github/dependabot.yml`) for `npm` and `github-actions`, weekly.
 
 ## 2. Circuit correctness (P0 — real bugs)
 
