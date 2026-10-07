@@ -45,15 +45,30 @@ jobs:
             ~/.bb
           key: ${{ runner.os }}-noir-1.0.0-beta.22-bb-5.0.0-nightly.20260522
 
+      # The upstream `install` scripts only fetch noirup/bbup from moving refs
+      # (releases/latest, the `next` branch), so download the tools directly
+      # from a fixed tag and verify a checksum before running them.
       - name: Install nargo
+        env:
+          NOIRUP_URL: https://github.com/noir-lang/noirup/releases/download/v0.1.5/noirup
+          NOIRUP_SHA256: b37012eb25a0c44fa84a1b524c3c6d3acbb86d56c8a0bdc3982fddb7772d4772
         run: |
-          curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
+          mkdir -p "$HOME/.nargo/bin"
+          curl -fsSL "$NOIRUP_URL" -o "$RUNNER_TEMP/noirup"
+          echo "$NOIRUP_SHA256  $RUNNER_TEMP/noirup" | sha256sum -c -
+          install -m 755 "$RUNNER_TEMP/noirup" "$HOME/.nargo/bin/noirup"
           echo "$HOME/.nargo/bin" >> "$GITHUB_PATH"
           "$HOME/.nargo/bin/noirup" -v 1.0.0-beta.22
 
       - name: Install bb
+        env:
+          BBUP_URL: https://raw.githubusercontent.com/AztecProtocol/aztec-packages/v5.0.0-nightly.20260522/barretenberg/bbup/bbup
+          BBUP_SHA256: 77496e6a82b3eadc36d897bf424be4e7f2d07c193de1f877f558fa3dff66fa90
         run: |
-          curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/master/barretenberg/bbup/install | bash
+          mkdir -p "$HOME/.bb"
+          curl -fsSL "$BBUP_URL" -o "$RUNNER_TEMP/bbup"
+          echo "$BBUP_SHA256  $RUNNER_TEMP/bbup" | sha256sum -c -
+          install -m 755 "$RUNNER_TEMP/bbup" "$HOME/.bb/bbup"
           echo "$HOME/.bb" >> "$GITHUB_PATH"
           PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH" "$HOME/.bb/bbup"
 
