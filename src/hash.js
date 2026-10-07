@@ -1,3 +1,4 @@
+const { randomBytes } = require("crypto");
 const { keccak256 } = require("js-sha3");
 
 // Barretenberg / Grumpkin scalar field modulus — every Field value the
@@ -45,8 +46,17 @@ function addressToField(address) {
   return toFieldHex(BigInt("0x" + digest));
 }
 
+// Unpredictable budget salt: 31 bytes (248 bits) from the OS CSPRNG, which
+// is always below FIELD_MODULUS (~2^254) so it is a valid Field as-is. The
+// salt is what hides `budgetCap` inside `budget_commitment`, so it must not be
+// guessable from the request time.
+function randomFieldSalt() {
+  return BigInt("0x" + randomBytes(31).toString("hex")).toString();
+}
+
 module.exports = {
   FIELD_MODULUS,
+  randomFieldSalt,
   toFieldHex,
   hashProof,
   hashPublicInputs,

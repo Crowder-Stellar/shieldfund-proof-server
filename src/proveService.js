@@ -1,6 +1,6 @@
 const { buildAllowlistTree } = require("./merkle");
 const { hashPair, provePayrollCompliance } = require("./nargoRunner");
-const { hashProof, hashPublicInputs, toFieldHex } = require("./hash");
+const { hashProof, hashPublicInputs, toFieldHex, randomFieldSalt } = require("./hash");
 const { PROOF_TYPES } = require("./config");
 
 class ValidationError extends Error {}
@@ -20,7 +20,7 @@ async function proveAndAnchor({ recipientId, amount, proofType, allowlist, budge
     throw new ValidationError("recipientId and amount are required");
   }
 
-  const salt = budgetSalt !== undefined ? budgetSalt : String(BigInt(Date.now()) * 1000000n + BigInt(Math.floor(Math.random() * 1e6)));
+  const salt = budgetSalt !== undefined ? budgetSalt : randomFieldSalt();
 
   const tree = await buildAllowlistTree(allowlist);
   let pathInfo;
