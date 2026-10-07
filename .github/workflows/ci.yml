@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# CI only reads the repo; deny the GITHUB_TOKEN every other scope.
+permissions:
+  contents: read
+
 jobs:
   guards:
     name: Source guards
