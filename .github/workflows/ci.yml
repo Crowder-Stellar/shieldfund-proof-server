@@ -70,7 +70,7 @@ jobs:
           echo "$BBUP_SHA256  $RUNNER_TEMP/bbup" | sha256sum -c -
           install -m 755 "$RUNNER_TEMP/bbup" "$HOME/.bb/bbup"
           echo "$HOME/.bb" >> "$GITHUB_PATH"
-          PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH" "$HOME/.bb/bbup"
+          "$HOME/.bb/bbup" -v 5.0.0-nightly.20260522
 
       - name: Compile circuits
         run: |
