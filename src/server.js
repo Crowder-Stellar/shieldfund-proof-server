@@ -2,6 +2,7 @@ const { randomUUID } = require("crypto");
 const express = require("express");
 const { proveAndAnchor, ValidationError } = require("./proveService");
 const { addressToField } = require("./hash");
+const { isValidAccountId } = require("./stellar");
 const { PORT, PROOF_TYPES, MAX_ALLOWLIST_SIZE } = require("./config");
 
 const app = express();
@@ -30,6 +31,9 @@ app.get("/health", (_req, res) => {
 app.post("/api/address-to-field", (req, res) => {
   const { address } = req.body || {};
   if (!address) return res.status(400).json({ error: "address is required" });
+  if (!isValidAccountId(address)) {
+    return res.status(400).json({ error: "address must be a valid Stellar account id (G..., 56 chars)" });
+  }
   res.json({ address, recipientId: addressToField(address) });
 });
 
