@@ -55,6 +55,10 @@ fn main(
     assert(computed_commitment == budget_commitment, "budget commitment mismatch");
 
     // 3. Range check: amount must not exceed the (hidden) budget cap.
+    // `as u128` keeps only the low 128 bits, so constrain both values to fit
+    // first; otherwise e.g. amount = 2^128 + 1 would compare as 1.
+    amount.assert_max_bit_size::<128>();
+    budget_cap.assert_max_bit_size::<128>();
     let amount_u: u128 = amount as u128;
     let budget_u: u128 = budget_cap as u128;
     assert(amount_u <= budget_u, "amount exceeds budget cap");

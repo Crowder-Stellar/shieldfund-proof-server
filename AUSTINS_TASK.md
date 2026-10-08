@@ -37,7 +37,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 2. Circuit correctness (P0 — real bugs)
 
-- [ ] **17. Fix the `Field → u128` truncation bug.** In `circuits/payroll_compliance/src/main.nr`,
+- [x] **17. Fix the `Field → u128` truncation bug.** In `circuits/payroll_compliance/src/main.nr`,
   `amount as u128` and `budget_cap as u128` **truncate** to the low 128 bits. An `amount` of `2^128 + 1`
   passes the `amount <= budget_cap` check while the public input says something huge. Add
   `amount.assert_max_bit_size::<128>()` (and the same for `budget_cap`) before the cast.
