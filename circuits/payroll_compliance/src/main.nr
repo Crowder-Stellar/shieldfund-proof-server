@@ -34,6 +34,10 @@ fn main(
     budget_cap: Field,
     budget_salt: Field,
 ) {
+    // 0 is reserved: padding leaves in a non-full allowlist are
+    // pedersen_hash([0, 0]), so recipient 0 would prove membership in any of them.
+    assert(recipient_id != 0, "recipient_id must be non-zero");
+
     // 1. Merkle inclusion: recompute the root from the private leaf + path
     // and assert it matches the publicly committed allowlist root.
     let leaf = std::hash::pedersen_hash([LEAF_DOMAIN, recipient_id]);
