@@ -82,15 +82,15 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 5. API security & reliability (P1)
 
-- [ ] **33. Authenticate `/api/prove`.** Anyone can currently burn ~25 s of CPU per request. Add an API key
+- [x] **33. Authenticate `/api/prove`.** Anyone can currently burn ~25 s of CPU per request. Add an API key
   or signed-request check (secret from env, never committed).
-- [ ] **34. Rate limiting** on `/api/prove` (per IP and per key).
-- [ ] **35. Explicit body-size limit** on `express.json()` (e.g. `32kb`).
-- [ ] **36. Request timeout** for `nargo`/`bb` subprocesses in `nargoRunner.js` (`execFile` `timeout`
+- [x] **34. Rate limiting** on `/api/prove` (per IP and per key).
+- [x] **35. Explicit body-size limit** on `express.json()` (e.g. `32kb`).
+- [x] **36. Request timeout** for `nargo`/`bb` subprocesses in `nargoRunner.js` (`execFile` `timeout`
   option) so a hung process can't hold the mutex forever.
-- [ ] **37. Add `helmet`** and disable `x-powered-by`.
-- [ ] **38. Graceful shutdown** on `SIGTERM`: stop accepting requests, let the in-flight proof finish.
-- [ ] **39. Structured logging** (e.g. `pino`) with a request ID per call; never log `budgetCap` or salts.
+- [x] **37. Add `helmet`** and disable `x-powered-by`.
+- [x] **38. Graceful shutdown** on `SIGTERM`: stop accepting requests, let the in-flight proof finish.
+- [x] **39. Structured logging** (e.g. `pino`) with a request ID per call; never log `budgetCap` or salts.
 
 ## 6. Architecture & performance (P1/P2)
 

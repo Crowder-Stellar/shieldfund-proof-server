@@ -1,3 +1,4 @@
+process.env.LOG_LEVEL = "silent";
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { isValidAccountId } = require("../src/stellar");
