@@ -62,7 +62,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 - [x] **25. Reject negative and out-of-range numbers.** `toFieldHex()` silently reduces mod p, so
   `amount: "-1"` becomes `p - 1`. `amount`, `budgetCap`, and IDs must be non-negative integers below 2^128
   (IDs below the field modulus).
-- [ ] **26. Validate types strictly.** Reject non-string/non-integer values, floats, `"1e6"`, empty strings,
+- [x] **26. Validate types strictly.** Reject non-string/non-integer values, floats, `"1e6"`, empty strings,
   and arrays where scalars are expected — before `BigInt()` throws a 500.
 - [ ] **27. Validate `budgetCap` is present.** It is currently not checked and fails deep inside nargo.
 - [x] **28. Validate the Stellar address** in `/api/address-to-field` (G-prefixed, 56 chars, valid

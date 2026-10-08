@@ -19,6 +19,12 @@ test("canonicalises decimal, hex and number inputs to decimal strings", () => {
   assert.equal(v.budgetSalt, "777");
 });
 
+test("proofType must be an own key of PROOF_TYPES, not an inherited one or an array", () => {
+  for (const proofType of ["toString", "__proto__", "constructor", ["payroll"], 0, undefined]) {
+    rejects({ proofType }, /proofType must be one of/);
+  }
+});
+
 test("budgetCap, amount and recipientId are required", () => {
   rejects({ budgetCap: undefined }, /budgetCap is required/);
   rejects({ amount: "" }, /amount is required/);
