@@ -1,9 +1,16 @@
 const { buildAllowlistTree } = require("./merkle");
 const { hashPair, provePayrollCompliance } = require("./nargoRunner");
-const { FIELD_MODULUS, hashProof, hashPublicInputs, toFieldHex, randomFieldSalt } = require("./hash");
+const { FIELD_MODULUS, hashProof, hashPublicInputs, toFieldHex } = require("./hash");
 const { PROOF_TYPES, MAX_ALLOWLIST_SIZE } = require("./config");
 
 class ValidationError extends Error {}
+
+// budgetSalt is what hides budgetCap inside the public budget_commitment, so
+// anyone who can guess it can brute-force the cap. Callers generate it once
+// per budget (e.g. `openssl rand -hex 31`), keep it secret next to the cap,
+// and the server never generates or returns it. Values below 2^120 can't be
+// random 248-bit salts (odds ~2^-128), so they are rejected as guessable.
+const MIN_SALT_BITS = 120;
 
 // Parses a circuit input into a canonical decimal string. Accepts a decimal
 // string, a 0x-hex string, or a safe integer. Rejects anything negative or
@@ -42,7 +49,8 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
   if (allowlist.length > MAX_ALLOWLIST_SIZE) {
     throw new ValidationError(`allowlist may contain at most ${MAX_ALLOWLIST_SIZE} entries`);
   }
-  for (const [name, value] of [["recipientId", recipientId], ["amount", amount], ["budgetCap", budgetCap]]) {
+  const required = [["recipientId", recipientId], ["amount", amount], ["budgetCap", budgetCap], ["budgetSalt", budgetSalt]];
+  for (const [name, value] of required) {
     if (value === undefined || value === null || value === "") throw new ValidationError(`${name} is required`);
   }
 
@@ -56,6 +64,13 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
   const recipient = parseField("recipientId", recipientId);
   if (recipient === "0") throw new ValidationError("recipientId 0 is reserved as the Merkle padding sentinel");
 
+  const salt = parseField("budgetSalt", budgetSalt);
+  if (BigInt(salt) < 1n << BigInt(MIN_SALT_BITS)) {
+    throw new ValidationError(
+      `budgetSalt must be a random value of at least 2^${MIN_SALT_BITS} (e.g. openssl rand -hex 31); small salts let anyone recover budgetCap`,
+    );
+  }
+
   return {
     proofType,
     allowlist: ids,
@@ -63,7 +78,7 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
     // The circuit compares these as u128 (see AUSTINS_TASK #17).
     amount: parseField("amount", amount, { maxBits: 128 }),
     budgetCap: parseField("budgetCap", budgetCap, { maxBits: 128 }),
-    budgetSalt: budgetSalt === undefined ? undefined : parseField("budgetSalt", budgetSalt),
+    budgetSalt: salt,
   };
 }
 
@@ -74,8 +89,6 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
 async function proveAndAnchor(input) {
   const { recipientId, amount, proofType, allowlist, budgetCap, budgetSalt } = validateProveInput(input);
 
-  const salt = budgetSalt !== undefined ? budgetSalt : randomFieldSalt();
-
   const tree = await buildAllowlistTree(allowlist);
   let pathInfo;
   try {
@@ -84,7 +97,7 @@ async function proveAndAnchor(input) {
     throw new ValidationError(err.message);
   }
 
-  const budgetCommitment = await hashPair(budgetCap, salt);
+  const budgetCommitment = await hashPair(budgetCap, budgetSalt);
 
   const circuitInputs = {
     merkleRoot: tree.root,
@@ -95,7 +108,7 @@ async function proveAndAnchor(input) {
     merklePath: pathInfo.path,
     merkleIndex: pathInfo.directions,
     budgetCap,
-    budgetSalt: salt,
+    budgetSalt,
   };
 
   let proofResult;
@@ -120,7 +133,6 @@ async function proveAndAnchor(input) {
     amount: toFieldHex(amount),
     merkleRoot: tree.root,
     budgetCommitment,
-    budgetSalt: salt,
     proofHash,
     publicInputsHash,
     publicInputs: proofResult.publicInputs,
@@ -131,4 +143,4 @@ async function proveAndAnchor(input) {
   };
 }
 
-module.exports = { proveAndAnchor, validateProveInput, ValidationError };
+module.exports = { proveAndAnchor, validateProveInput, ValidationError, MIN_SALT_BITS };

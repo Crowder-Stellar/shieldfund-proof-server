@@ -30,7 +30,8 @@ const toolchainError = (assertion) => {
 
 const app = require("../src/server");
 const body = {
-  recipientId: "42", amount: "1", proofType: "payroll", allowlist: ["42"], budgetCap: "10", budgetSalt: "7",
+  recipientId: "42", amount: "1", proofType: "payroll", allowlist: ["42"], budgetCap: "10",
+  budgetSalt: "0x1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79",
 };
 
 let server, base, logged;
@@ -68,7 +69,9 @@ test("toolchain failures return a generic 500 with a request id, never the raw o
   assert.deepEqual(Object.keys(json).sort(), ["error", "requestId"]);
   assert.equal(json.error, "proof generation failed");
   assert.equal(res.headers.get("x-request-id"), json.requestId);
-  assert.doesNotMatch(JSON.stringify(json), /\/home|\/srv|bb|srs/);
+  // requestId is a random UUID, which can contain "bb" — check it separately.
+  assert.match(json.requestId, /^[0-9a-f-]{36}$/);
+  assert.doesNotMatch(json.error, /\/home|\/srv|bb|srs/);
 
   // ...but the details are in the server log under the same id.
   const log = logged.join("\n");

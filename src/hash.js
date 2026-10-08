@@ -1,4 +1,3 @@
-const { randomBytes } = require("crypto");
 const { keccak256 } = require("js-sha3");
 
 // Barretenberg / Grumpkin scalar field modulus — every Field value the
@@ -46,17 +45,19 @@ function addressToField(address) {
   return toFieldHex(BigInt("0x" + digest));
 }
 
-// Unpredictable budget salt: 31 bytes (248 bits) from the OS CSPRNG, which
-// is always below FIELD_MODULUS (~2^254) so it is a valid Field as-is. The
-// salt is what hides `budgetCap` inside `budget_commitment`, so it must not be
-// guessable from the request time.
-function randomFieldSalt() {
-  return BigInt("0x" + randomBytes(31).toString("hex")).toString();
+// bb serializes every proof field element as 32 bytes, so that is the proof's
+// real size — not the length of its JSON/hex encoding.
+const FIELD_BYTES = 32;
+function proofByteLength(proofFieldsHex) {
+  for (const hex of proofFieldsHex) {
+    if (!/^0x[0-9a-fA-F]{1,64}$/.test(hex)) throw new Error(`not a field element: ${hex}`);
+  }
+  return proofFieldsHex.length * FIELD_BYTES;
 }
 
 module.exports = {
   FIELD_MODULUS,
-  randomFieldSalt,
+  proofByteLength,
   toFieldHex,
   hashProof,
   hashPublicInputs,

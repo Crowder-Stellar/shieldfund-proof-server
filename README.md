@@ -114,7 +114,7 @@ curl -X POST http://localhost:4100/api/prove \
     "proofType": "payroll",
     "allowlist": ["42", "7", "1001"],
     "budgetCap": "1000000",
-    "budgetSalt": "777"
+    "budgetSalt": "0x1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79"
   }'
 ```
 
@@ -126,11 +126,10 @@ curl -X POST http://localhost:4100/api/prove \
   "publicInputsHash": "0x5a5f1261...",
   "merkleRoot": "0x045c00e7...",
   "budgetCommitment": "0x248412bd...",
-  "budgetSalt": "777",
   "recipientId": "0x...2a",
   "amount": "0x...7a120",
   "publicInputs": ["0x045c00e7...", "0x248412bd...", "0x...2a", "0x...7a120", "0x00...0"],
-  "proofSizeBytes": 31603,
+  "proofSizeBytes": 14656,
   "provingTimeMs": 1469,
   "scheme": "ultra_honk"
 }
@@ -149,11 +148,13 @@ integers as decimal or `0x`-hex strings, below the BN254 field modulus (`amount`
 rejected with a 400 rather than silently reduced modulo the field. `recipientId` 0 is reserved for Merkle padding,
 and allowlists hold at most 16 distinct entries.
 
-`budgetSalt` is optional — if omitted the server generates a random 248-bit one from the OS CSPRNG (a
-guessable salt would let anyone brute-force `budgetCap` from the public `budget_commitment`), but you must persist whatever value comes
-back in the response to reuse the same `budget_commitment` for later proofs against the same budget
-category (reusing a *cap* with a *new* salt produces a different, equally valid commitment — the admin
-just has to know which one they published on-chain).
+`budgetSalt` is required and is never returned. It hides `budgetCap` inside the public `budget_commitment`, so
+anyone who learns or guesses it can brute-force the cap. Generate one per budget category with
+`openssl rand -hex 31`, store it as a secret alongside the cap, and send the same value with every proof
+against that budget (a new salt produces a different commitment from the one published on-chain). Salts below
+2^120 are rejected as guessable.
+
+`proofSizeBytes` is the proof's serialized size: 32 bytes per field element.
 
 #### Auth, limits and errors
 

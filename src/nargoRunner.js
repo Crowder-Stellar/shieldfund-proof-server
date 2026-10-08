@@ -3,7 +3,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const { NARGO_BIN, BB_BIN, HASH_UTIL_DIR, PAYROLL_DIR, SUBPROCESS_TIMEOUT_MS } = require("./config");
 const { createMutex } = require("./mutex");
-const { toFieldHex } = require("./hash");
+const { toFieldHex, proofByteLength } = require("./hash");
 
 const hashUtilLock = createMutex();
 const payrollLock = createMutex();
@@ -132,7 +132,7 @@ async function provePayrollCompliance(inputs) {
       bbVersion: proofJson.bb_version,
       scheme: proofJson.scheme,
       provingTimeMs,
-      proofSizeBytes: JSON.stringify(proofJson.proof).length,
+      proofSizeBytes: proofByteLength(proofJson.proof),
     };
   });
 }
