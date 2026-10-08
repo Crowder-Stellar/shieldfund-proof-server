@@ -41,6 +41,10 @@ async function buildAllowlistTree(allowlist) {
   const root = level[0];
 
   function pathFor(recipientId) {
+    // Never hand out a padding slot's path, whatever the caller validated.
+    if (recipientId === PADDING_ID) {
+      throw new Error(`recipientId "${PADDING_ID}" is reserved as the padding sentinel`);
+    }
     const index = ids.indexOf(recipientId);
     if (index === -1) throw new Error(`recipientId "${recipientId}" is not in the allowlist`);
 

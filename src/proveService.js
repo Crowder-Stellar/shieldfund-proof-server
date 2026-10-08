@@ -51,11 +51,15 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
   // 0 is the Merkle padding leaf, so it would prove membership in any
   // non-full allowlist (see AUSTINS_TASK #19).
   if (ids.includes("0")) throw new ValidationError("recipientId 0 is reserved as the Merkle padding sentinel");
+  // Checked separately: a zero recipientId absent from the allowlist would
+  // otherwise match a padding slot in pathFor().
+  const recipient = parseField("recipientId", recipientId);
+  if (recipient === "0") throw new ValidationError("recipientId 0 is reserved as the Merkle padding sentinel");
 
   return {
     proofType,
     allowlist: ids,
-    recipientId: parseField("recipientId", recipientId),
+    recipientId: recipient,
     // The circuit compares these as u128 (see AUSTINS_TASK #17).
     amount: parseField("amount", amount, { maxBits: 128 }),
     budgetCap: parseField("budgetCap", budgetCap, { maxBits: 128 }),
