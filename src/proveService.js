@@ -33,7 +33,7 @@ function parseField(name, value, { maxBits } = {}) {
 // Validates and canonicalises every /api/prove input up front, so bad input
 // is a clear 400 here rather than a crash deep inside nargo.
 function validateProveInput({ recipientId, amount, proofType, allowlist, budgetCap, budgetSalt }) {
-  if (!(proofType in PROOF_TYPES)) {
+  if (typeof proofType !== "string" || !Object.hasOwn(PROOF_TYPES, proofType)) {
     throw new ValidationError(`proofType must be one of: ${Object.keys(PROOF_TYPES).join(", ")}`);
   }
   if (!Array.isArray(allowlist) || allowlist.length === 0) {
