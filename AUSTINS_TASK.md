@@ -45,7 +45,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 - [ ] **19. Reject recipient `0` in the circuit.** Add `assert(recipient_id != 0)`. Right now an allowlist
   with fewer than 16 entries has padding leaves of `pedersen([0, 0])`, so recipient `0` can prove
   membership in *any* non-full allowlist.
-- [ ] **20. Domain-separate leaves from internal nodes.** Leaves are `pedersen([id, 0])` and nodes are
+- [x] **20. Domain-separate leaves from internal nodes.** Leaves are `pedersen([id, 0])` and nodes are
   `pedersen([l, r])` — same function, no domain tag. Hash leaves with a distinct tag (e.g.
   `pedersen([1, id])`) or use `pedersen_hash_with_separator`; update `hash_util` and `merkle.js` to match.
 - [ ] **21. Add Noir tests** for: non-member rejected, over-budget rejected, bad `proof_type_id` rejected,
