@@ -99,8 +99,10 @@ async function proveAndAnchor(input) {
     proofResult = await provePayrollCompliance(circuitInputs);
   } catch (err) {
     // Assertion failures from the circuit (bad allowlist membership,
-    // over-budget amount, unknown proof_type_id) surface as 400s, not 500s.
-    throw new ValidationError(err.message);
+    // over-budget amount, unknown proof_type_id) surface as 400s with just
+    // the assert() message. Toolchain failures stay errors → generic 500.
+    if (err.assertion) throw new ValidationError(err.assertion);
+    throw err;
   }
 
   const proofHash = hashProof(proofResult.proof);

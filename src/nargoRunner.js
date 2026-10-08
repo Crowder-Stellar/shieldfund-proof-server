@@ -12,8 +12,12 @@ function run(bin, args, cwd) {
   return new Promise((resolve, reject) => {
     execFile(bin, args, { cwd, maxBuffer: 1024 * 1024 * 64 }, (err, stdout, stderr) => {
       if (err) {
-        const message = extractAssertionMessage(stderr) || extractAssertionMessage(stdout) || stderr || stdout || err.message;
-        const wrapped = new Error(message);
+        const assertion = extractAssertionMessage(stderr) || extractAssertionMessage(stdout);
+        const wrapped = new Error(assertion || stderr || stdout || err.message);
+        // Set only when a Noir assert() rejected the inputs — safe to show
+        // callers. Anything else is a toolchain failure whose raw output
+        // (paths, compiler dumps) must stay in the server logs.
+        wrapped.assertion = assertion;
         wrapped.stdout = stdout;
         wrapped.stderr = stderr;
         reject(wrapped);
