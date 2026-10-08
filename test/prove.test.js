@@ -2,6 +2,8 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { proveAndAnchor, ValidationError } = require("../src/proveService");
 
+const SALT = "0x1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79";
+
 // These hit the real nargo/bb toolchain — slow (tree build + proving), not
 // mocked. Run with: npm test
 test("valid payroll proof: proves, verifies, and hashes", async () => {
@@ -11,13 +13,18 @@ test("valid payroll proof: proves, verifies, and hashes", async () => {
     proofType: "payroll",
     allowlist: ["42", "7", "1001"],
     budgetCap: "1000000",
-    budgetSalt: "777",
+    budgetSalt: SALT,
   });
 
   assert.equal(result.valid, true);
   assert.match(result.proofHash, /^0x[0-9a-f]{64}$/);
   assert.match(result.publicInputsHash, /^0x[0-9a-f]{64}$/);
   assert.equal(result.publicInputs.length, 5);
+  // The salt is the caller's secret; echoing it back would leak it (#30).
+  assert.equal("budgetSalt" in result, false);
+  assert.doesNotMatch(JSON.stringify(result), new RegExp(BigInt(SALT).toString(16)));
+  // 32 bytes per proof field element, not the JSON string length (#32).
+  assert.equal(result.proofSizeBytes % 32, 0);
 });
 
 test("rejects amount over budget cap", async () => {
@@ -28,7 +35,7 @@ test("rejects amount over budget cap", async () => {
       proofType: "payroll",
       allowlist: ["42", "7", "1001"],
       budgetCap: "1000000",
-      budgetSalt: "777",
+      budgetSalt: SALT,
     }),
     (err) => err instanceof ValidationError && /budget/.test(err.message),
   );
@@ -42,7 +49,7 @@ test("rejects recipient not in allowlist", async () => {
       proofType: "payroll",
       allowlist: ["42", "7", "1001"],
       budgetCap: "1000000",
-      budgetSalt: "777",
+      budgetSalt: SALT,
     }),
     (err) => err instanceof ValidationError && /allowlist/.test(err.message),
   );
@@ -56,7 +63,7 @@ test("rejects unknown proofType before touching the circuit", async () => {
       proofType: "bogus",
       allowlist: ["42"],
       budgetCap: "1000000",
-      budgetSalt: "777",
+      budgetSalt: SALT,
     }),
     ValidationError,
   );

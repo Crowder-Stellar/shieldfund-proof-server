@@ -72,12 +72,12 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 - [x] **29. Use a CSPRNG for the default salt.** `proveService.js` builds `budgetSalt` from `Date.now()` and
   `Math.random()`. Replace with `crypto.randomBytes(31)` → field element.
-- [ ] **30. Document salt secrecy.** The response returns `budgetSalt` next to `budgetCommitment`. With
+- [x] **30. Document salt secrecy.** The response returns `budgetSalt` next to `budgetCommitment`. With
   both, anyone can brute-force a low-entropy `budgetCap`. Decide with Ndii whether to stop returning the
   salt (caller supplies it) or return it only to an authenticated admin. Implement the decision.
 - [x] **31. Stop leaking internals in 500s.** `server.js` returns `detail: err.message`, which can include
   file paths and raw nargo/bb output. Log it server-side, return a request ID to the client.
-- [ ] **32. Fix `proofSizeBytes`.** It currently measures the JSON string length, not bytes. Compute the
+- [x] **32. Fix `proofSizeBytes`.** It currently measures the JSON string length, not bytes. Compute the
   real byte length of the proof field elements.
 
 ## 5. API security & reliability (P1)
