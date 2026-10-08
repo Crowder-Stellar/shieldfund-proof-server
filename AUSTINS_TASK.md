@@ -55,27 +55,27 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 - [ ] **22. Reject recipient `0` in the API.** `merkle.js` only blocks the string `"0"` inside `allowlist`;
   `recipientId: "0"`, `"0x0"`, or `"00"` sail through and match a padding slot. Normalise first, then reject.
-- [ ] **23. Normalise IDs before comparing.** `pathFor()` uses `ids.indexOf(recipientId)` on raw strings, so
+- [x] **23. Normalise IDs before comparing.** `pathFor()` uses `ids.indexOf(recipientId)` on raw strings, so
   `"42"` and `"0x2a"` are different recipients. Convert everything with `toFieldHex()` before building the
   tree and looking up paths.
-- [ ] **24. Reject duplicate allowlist entries** (after normalisation).
-- [ ] **25. Reject negative and out-of-range numbers.** `toFieldHex()` silently reduces mod p, so
+- [x] **24. Reject duplicate allowlist entries** (after normalisation).
+- [x] **25. Reject negative and out-of-range numbers.** `toFieldHex()` silently reduces mod p, so
   `amount: "-1"` becomes `p - 1`. `amount`, `budgetCap`, and IDs must be non-negative integers below 2^128
   (IDs below the field modulus).
 - [ ] **26. Validate types strictly.** Reject non-string/non-integer values, floats, `"1e6"`, empty strings,
   and arrays where scalars are expected — before `BigInt()` throws a 500.
-- [ ] **27. Validate `budgetCap` is present.** It is currently not checked and fails deep inside nargo.
+- [x] **27. Validate `budgetCap` is present.** It is currently not checked and fails deep inside nargo.
 - [ ] **28. Validate the Stellar address** in `/api/address-to-field` (G-prefixed, 56 chars, valid
   checksum) instead of hashing any string.
 
 ## 4. Cryptographic hygiene (P1)
 
-- [ ] **29. Use a CSPRNG for the default salt.** `proveService.js` builds `budgetSalt` from `Date.now()` and
+- [x] **29. Use a CSPRNG for the default salt.** `proveService.js` builds `budgetSalt` from `Date.now()` and
   `Math.random()`. Replace with `crypto.randomBytes(31)` → field element.
 - [ ] **30. Document salt secrecy.** The response returns `budgetSalt` next to `budgetCommitment`. With
   both, anyone can brute-force a low-entropy `budgetCap`. Decide with Ndii whether to stop returning the
   salt (caller supplies it) or return it only to an authenticated admin. Implement the decision.
-- [ ] **31. Stop leaking internals in 500s.** `server.js` returns `detail: err.message`, which can include
+- [x] **31. Stop leaking internals in 500s.** `server.js` returns `detail: err.message`, which can include
   file paths and raw nargo/bb output. Log it server-side, return a request ID to the client.
 - [ ] **32. Fix `proofSizeBytes`.** It currently measures the JSON string length, not bytes. Compute the
   real byte length of the proof field elements.
