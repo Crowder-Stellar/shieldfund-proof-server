@@ -6,7 +6,8 @@ const assert = require("node:assert/strict");
 // own process, so the stubs don't leak into prove.test.js.
 process.env.LOG_LEVEL = "silent";
 process.env.PROVE_API_KEYS = "test-key";
-const nargoRunner = require("../src/nargoRunner");
+const prover = require("../src/prover");
+const pedersen = require("../src/pedersen");
 const { logger } = require("../src/logger");
 const merkle = require("../src/merkle");
 
@@ -17,8 +18,8 @@ merkle.buildAllowlistTree = async () => ({
   root: "0x01",
   pathFor: () => ({ path: Array(4).fill("0x00"), directions: Array(4).fill(0) }),
 });
-nargoRunner.hashPair = async () => "0x02";
-nargoRunner.provePayrollCompliance = async () => proveBehaviour();
+pedersen.hashPair = async () => "0x02";
+prover.provePayrollCompliance = async () => proveBehaviour();
 
 const toolchainError = (assertion) => {
   const err = new Error(assertion || SECRET_PATH);

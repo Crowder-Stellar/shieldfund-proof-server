@@ -49,9 +49,14 @@ Admin's budget cap ──► pedersen_hash(cap, salt) ──► budget_commitmen
                                           treasury_vault.disburse(recipient, amount, proof_hash)
 ```
 
-`circuits/hash_util` is a second, tiny circuit (`pedersen_hash([a, b])`) with no business logic of its
-own — it exists purely so the proof-server can build the allowlist Merkle tree off-chain using the exact
-same hash `payroll_compliance` recomputes internally, by executing it (never proving it) via `nargo execute`.
+The server builds the allowlist Merkle tree in-process with Barretenberg's own Pedersen implementation
+([`@aztec/bb.js`](https://www.npmjs.com/package/@aztec/bb.js), pinned to the same version as `bb`), which takes
+a few milliseconds for a full 16-leaf tree. `circuits/hash_util` is a tiny circuit (`pedersen_hash([a, b])`)
+that the tests execute to check the in-process hash matches the circuit's exactly.
+
+Each proof runs in its own temporary directory: the witness is generated in-process with
+[`@noir-lang/noir_js`](https://www.npmjs.com/package/@noir-lang/noir_js), then `bb prove` / `bb verify` read and
+write only that directory, which is deleted afterwards. Nothing under `circuits/` is modified per request.
 
 ---
 
@@ -94,7 +99,12 @@ npm start
 ```
 
 By default the server shells out to `~/.nargo/bin/nargo` and `~/.bb/bb`. Override with `NARGO_BIN=` /
-`BB_BIN=` env vars (see `.env.example`) if yours live elsewhere.
+`BB_BIN=` env vars (see `.env.example`) if yours live elsewhere. Before the first proof the server runs
+`nargo compile` once on `payroll_compliance` (writing only to its gitignored `target/`).
+
+Up to `MAX_CONCURRENT_PROOFS` (default 2) proofs run at once; further requests wait their turn. Each
+`bb prove` is CPU- and memory-heavy, so size this to the cores you can spare. The last `TREE_CACHE_SIZE`
+(default 100) allowlist trees are cached, so repeat proofs against the same allowlist skip rebuilding it.
 
 ### Health check
 
@@ -198,17 +208,12 @@ is a 400.
 
 - **Allowlist capacity is 16** (`MERKLE_DEPTH = 4` in the circuit). Raise `DEPTH` in
   `circuits/payroll_compliance/src/main.nr` and `MERKLE_DEPTH` in `src/config.js` together to scale — they
-  must always match.
-- **Merkle tree construction is slow** (~1s per node via `nargo execute` subprocess calls, ~25s total for a
-  16-leaf tree) because it shells out to the CLI once per hash instead of using in-process WASM bindings
-  (`@noir-lang/noir_js`). Proving itself is fast (~1.5s); tree-building dominates request latency. Swapping
-  in `noir_js`/`bb.js` for in-process execution would fix this — left as CLI calls here because they're the
-  toolchain already verified working end-to-end in this environment.
+  must always match (`test/depth.test.js` fails if they don't).
 - **`recipientId` "0" is a reserved padding sentinel** for unused allowlist slots — never assign it to a
   real recipient.
 - **On-chain trust boundary unchanged**: `proof_registry` still can't verify a proof itself, only anchor a
   hash. This server is the trusted party that promises the hash corresponds to a real, locally-verified
   proof — same trust model the original contract comments described, just now actually implemented rather
   than assumed.
-- **Concurrency**: requests are serialized per circuit (nargo/bb read and write files in the circuit
-  directory) via an in-process mutex — fine for a demo, not for concurrent production load.
+- **Concurrency is per process**: `MAX_CONCURRENT_PROOFS` and the tree cache live in memory, so running
+  several instances multiplies the CPU budget and gives each its own cache.

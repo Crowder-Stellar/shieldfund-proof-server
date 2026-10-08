@@ -94,15 +94,15 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 6. Architecture & performance (P1/P2)
 
-- [ ] **40. Stop writing into tracked files.** The server overwrites the git-tracked
+- [x] **40. Stop writing into tracked files.** The server overwrites the git-tracked
   `circuits/*/Prover.toml` and writes into `target/`. Use a per-request temp directory instead.
-- [ ] **41. Per-request workspaces remove the global mutex.** Once #40 is done, run requests in parallel
+- [x] **41. Per-request workspaces remove the global mutex.** Once #40 is done, run requests in parallel
   with a small concurrency cap instead of serialising everything.
-- [ ] **42. Replace `nargo execute` hashing with in-process WASM** (`@noir-lang/noir_js` /
+- [x] **42. Replace `nargo execute` hashing with in-process WASM** (`@noir-lang/noir_js` /
   `@aztec/bb.js` or a JS Pedersen implementation) — the README notes tree-building takes ~25 s. Target: under
   1 s for a 16-leaf tree, with a test proving hashes match the circuit's.
-- [ ] **43. Cache allowlist trees** by root so repeated proofs against the same allowlist skip rebuilding.
-- [ ] **44. Make `MERKLE_DEPTH` single-source.** Read it from the compiled circuit ABI, or add a test that
+- [x] **43. Cache allowlist trees** by root so repeated proofs against the same allowlist skip rebuilding.
+- [x] **44. Make `MERKLE_DEPTH` single-source.** Read it from the compiled circuit ABI, or add a test that
   fails if `config.js` and `main.nr` disagree.
 
 ## 7. Tests, tooling & docs (P1/P2)
