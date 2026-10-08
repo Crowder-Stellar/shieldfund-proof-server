@@ -6,7 +6,10 @@ const assert = require("node:assert/strict");
 
 const proveService = require("../src/proveService");
 let releaseProof;
-proveService.proveAndAnchor = () => new Promise((resolve) => { releaseProof = () => resolve({ valid: true }); });
+proveService.proveAndAnchor = () =>
+  new Promise((resolve) => {
+    releaseProof = () => resolve({ valid: true });
+  });
 
 const app = require("../src/server");
 
@@ -23,7 +26,12 @@ test("shutdown lets the in-flight proof finish, refuses new requests, then exits
   while (!releaseProof) await new Promise((r) => setTimeout(r, 5));
 
   let exitCode;
-  const exited = new Promise((r) => { app.shutdown(server, "SIGTERM", (code) => { exitCode = code; r(); }); });
+  const exited = new Promise((r) => {
+    app.shutdown(server, "SIGTERM", (code) => {
+      exitCode = code;
+      r();
+    });
+  });
 
   // The listener is closed, so new connections are refused outright.
   await assert.rejects(fetch(`${base}/health`, { headers: { connection: "close" } }));

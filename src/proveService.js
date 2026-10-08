@@ -50,7 +50,12 @@ function validateProveInput({ recipientId, amount, proofType, allowlist, budgetC
   if (allowlist.length > MAX_ALLOWLIST_SIZE) {
     throw new ValidationError(`allowlist may contain at most ${MAX_ALLOWLIST_SIZE} entries`);
   }
-  const required = [["recipientId", recipientId], ["amount", amount], ["budgetCap", budgetCap], ["budgetSalt", budgetSalt]];
+  const required = [
+    ["recipientId", recipientId],
+    ["amount", amount],
+    ["budgetCap", budgetCap],
+    ["budgetSalt", budgetSalt],
+  ];
   for (const [name, value] of required) {
     if (value === undefined || value === null || value === "") throw new ValidationError(`${name} is required`);
   }

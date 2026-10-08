@@ -28,7 +28,7 @@ async function buildAllowlistTree(allowlist) {
   } else {
     tree = buildTree(allowlist);
     // Drop failed builds so the next request retries.
-    tree.catch(() => treeCache.delete(key));
+    tree.catch(() => treeCache.get(key) === tree && treeCache.delete(key));
   }
   treeCache.set(key, tree);
   while (treeCache.size > TREE_CACHE_SIZE) treeCache.delete(treeCache.keys().next().value);

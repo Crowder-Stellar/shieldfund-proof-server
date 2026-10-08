@@ -107,12 +107,13 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 7. Tests, tooling & docs (P1/P2)
 
-- [ ] **45. Unit tests for `hash.js` and `merkle.js`** that don't need nargo/bb (mock `hashPair`).
-- [ ] **46. API tests with `supertest`** covering every 400 path added in sections 3–5.
-- [ ] **47. Add ESLint + Prettier** and run them in CI; fail on lint errors.
-- [ ] **48. Add `.nvmrc`** (`20`) and an `engines` field in `package.json`.
-- [ ] **49. Add a `Dockerfile`** with pinned nargo/bb versions, running as a non-root user.
-- [ ] **50. Update `README.md`** for everything above: new validation rules, auth, salt handling, Docker
+- [x] **45. Unit tests for `hash.js` and `merkle.js`** that don't need nargo/bb (mock `hashPair`).
+- [x] **46. API tests with `supertest`** covering every 400 path added in sections 3–5.
+- [x] **47. Add ESLint + Prettier** and run them in CI; fail on lint errors.
+- [x] **48. Add `.nvmrc`** (`20`) and an `engines` field in `package.json`. *(Done with Node 22 LTS: Node 20 reached
+  end-of-life on 2026-04-30.)*
+- [x] **49. Add a `Dockerfile`** with pinned nargo/bb versions, running as a non-root user.
+- [x] **50. Update `README.md`** for everything above: new validation rules, auth, salt handling, Docker
   usage, and a "Security" section linking `SECURITY.md`.
 
 ---

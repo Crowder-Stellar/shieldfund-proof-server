@@ -31,7 +31,11 @@ const toolchainError = (assertion) => {
 
 const app = require("../src/server");
 const body = {
-  recipientId: "42", amount: "1", proofType: "payroll", allowlist: ["42"], budgetCap: "10",
+  recipientId: "42",
+  amount: "1",
+  proofType: "payroll",
+  allowlist: ["42"],
+  budgetCap: "10",
   budgetSalt: "0x1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79",
 };
 
@@ -63,7 +67,9 @@ async function prove(payload = body, raw) {
 }
 
 test("toolchain failures return a generic 500 with a request id, never the raw output", async () => {
-  proveBehaviour = async () => { throw toolchainError(null); };
+  proveBehaviour = async () => {
+    throw toolchainError(null);
+  };
   const { res, json } = await prove();
 
   assert.equal(res.status, 500);
@@ -81,7 +87,9 @@ test("toolchain failures return a generic 500 with a request id, never the raw o
 });
 
 test("circuit assertion failures are 400s with only the assert message", async () => {
-  proveBehaviour = async () => { throw toolchainError("amount exceeds budget cap"); };
+  proveBehaviour = async () => {
+    throw toolchainError("amount exceeds budget cap");
+  };
   const { res, json } = await prove();
 
   assert.equal(res.status, 400);

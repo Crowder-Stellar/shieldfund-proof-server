@@ -34,14 +34,17 @@ app.use((req, res, next) => {
   const started = process.hrtime.bigint();
   // Method, path, status and timing only — never bodies (budget caps, salts).
   res.on("finish", () => {
-    logger.info({
-      reqId: req.id,
-      method: req.method,
-      path: req.path,
-      status: res.statusCode,
-      durationMs: Number(process.hrtime.bigint() - started) / 1e6,
-      apiKeyId: req.apiKeyId,
-    }, "request");
+    logger.info(
+      {
+        reqId: req.id,
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        durationMs: Number(process.hrtime.bigint() - started) / 1e6,
+        apiKeyId: req.apiKeyId,
+      },
+      "request",
+    );
   });
   next();
 });
@@ -57,14 +60,17 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 function logInternalError(req, err) {
-  logger.error({
-    reqId: req.id,
-    method: req.method,
-    path: req.path,
-    err,
-    stderr: err && err.stderr,
-    stdout: err && err.stdout,
-  }, "request failed");
+  logger.error(
+    {
+      reqId: req.id,
+      method: req.method,
+      path: req.path,
+      err,
+      stderr: err && err.stderr,
+      stdout: err && err.stdout,
+    },
+    "request failed",
+  );
 }
 
 const rateLimitOptions = {

@@ -1,0 +1,7 @@
+.git
+.github
+node_modules
+circuits/*/target
+test
+.env
+*.md

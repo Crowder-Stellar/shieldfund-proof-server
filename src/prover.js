@@ -18,7 +18,9 @@ function run(bin, args, cwd, timeout = SUBPROCESS_TIMEOUT_MS) {
     const options = { cwd, maxBuffer: 1024 * 1024 * 64, timeout, killSignal: "SIGKILL" };
     execFile(bin, args, options, (err, stdout, stderr) => {
       if (err) {
-        const message = err.killed ? `${path.basename(bin)} ${args[0]} timed out after ${timeout}ms` : stderr || stdout || err.message;
+        const message = err.killed
+          ? `${path.basename(bin)} ${args[0]} timed out after ${timeout}ms`
+          : stderr || stdout || err.message;
         // Raw toolchain output (paths, compiler dumps) stays in the server
         // logs; callers only ever see a generic 500.
         const wrapped = new Error(message);
@@ -56,7 +58,17 @@ function extractAssertionMessage(message) {
 }
 
 function toCircuitInputs(inputs) {
-  const { merkleRoot, budgetCommitment, recipientId, amount, proofTypeId, merklePath, merkleIndex, budgetCap, budgetSalt } = inputs;
+  const {
+    merkleRoot,
+    budgetCommitment,
+    recipientId,
+    amount,
+    proofTypeId,
+    merklePath,
+    merkleIndex,
+    budgetCap,
+    budgetSalt,
+  } = inputs;
   return {
     merkle_root: merkleRoot,
     budget_commitment: budgetCommitment,
