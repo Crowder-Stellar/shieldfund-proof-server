@@ -53,7 +53,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
 
 ## 3. Server input validation (P0/P1)
 
-- [ ] **22. Reject recipient `0` in the API.** `merkle.js` only blocks the string `"0"` inside `allowlist`;
+- [x] **22. Reject recipient `0` in the API.** `merkle.js` only blocks the string `"0"` inside `allowlist`;
   `recipientId: "0"`, `"0x0"`, or `"00"` sail through and match a padding slot. Normalise first, then reject.
 - [ ] **23. Normalise IDs before comparing.** `pathFor()` uses `ids.indexOf(recipientId)` on raw strings, so
   `"42"` and `"0x2a"` are different recipients. Convert everything with `toFieldHex()` before building the

@@ -61,3 +61,11 @@ test("recipient 0 (the Merkle padding leaf) is rejected in any spelling", async 
   }
   await assert.rejects(proveAndAnchor({ ...base, recipientId: "0x0", allowlist: ["0x00"] }), ValidationError);
 });
+
+test("recipient 0 is rejected even when it is not in the allowlist", async () => {
+  // Otherwise pathFor() would return a padding slot's inclusion path.
+  for (const zero of ["0", "0x0", "0x00", 0]) {
+    rejects({ recipientId: zero }, /reserved as the Merkle padding sentinel/);
+  }
+  await assert.rejects(proveAndAnchor({ ...base, recipientId: "0x0" }), ValidationError);
+});
