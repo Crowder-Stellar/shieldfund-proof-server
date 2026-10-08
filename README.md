@@ -143,6 +143,11 @@ the endpoint returns `400` with the Noir `assert()` message (or a validation mes
 the circuit's constraints are the actual source of truth for what's rejected, not application-level checks
 layered on top.
 
+All numeric inputs (`recipientId`, `amount`, `budgetCap`, `budgetSalt`, allowlist entries) must be non-negative
+integers as decimal or `0x`-hex strings, below the BN254 field modulus (`amount` and `budgetCap` below 2^128). They're
+rejected with a 400 rather than silently reduced modulo the field. `recipientId` 0 is reserved for Merkle padding,
+and allowlists hold at most 16 distinct entries.
+
 `budgetSalt` is optional — if omitted the server generates a random 248-bit one from the OS CSPRNG (a
 guessable salt would let anyone brute-force `budgetCap` from the public `budget_commitment`), but you must persist whatever value comes
 back in the response to reuse the same `budget_commitment` for later proofs against the same budget
