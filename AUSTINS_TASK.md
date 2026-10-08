@@ -64,10 +64,8 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
   (IDs below the field modulus).
 - [x] **26. Validate types strictly.** Reject non-string/non-integer values, floats, `"1e6"`, empty strings,
   and arrays where scalars are expected — before `BigInt()` throws a 500.
-- [ ] **27. Validate `budgetCap` is present.** It is currently not checked and fails deep inside nargo.
-- [x] **28. Validate the Stellar address** in `/api/address-to-field` (G-prefixed, 56 chars, valid
 - [x] **27. Validate `budgetCap` is present.** It is currently not checked and fails deep inside nargo.
-- [ ] **28. Validate the Stellar address** in `/api/address-to-field` (G-prefixed, 56 chars, valid
+- [x] **28. Validate the Stellar address** in `/api/address-to-field` (G-prefixed, 56 chars, valid
   checksum) instead of hashing any string.
 
 ## 4. Cryptographic hygiene (P1)
