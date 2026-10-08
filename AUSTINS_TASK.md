@@ -42,7 +42,7 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
   passes the `amount <= budget_cap` check while the public input says something huge. Add
   `amount.assert_max_bit_size::<128>()` (and the same for `budget_cap`) before the cast.
 - [ ] **18. Add a Noir test proving #17 is fixed** (`#[test(should_fail)]` with an amount ≥ 2^128).
-- [ ] **19. Reject recipient `0` in the circuit.** Add `assert(recipient_id != 0)`. Right now an allowlist
+- [x] **19. Reject recipient `0` in the circuit.** Add `assert(recipient_id != 0)`. Right now an allowlist
   with fewer than 16 entries has padding leaves of `pedersen([0, 0])`, so recipient `0` can prove
   membership in *any* non-full allowlist.
 - [ ] **20. Domain-separate leaves from internal nodes.** Leaves are `pedersen([id, 0])` and nodes are
