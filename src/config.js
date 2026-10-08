@@ -5,10 +5,12 @@ const NARGO_BIN = process.env.NARGO_BIN || path.join(os.homedir(), ".nargo", "bi
 const BB_BIN = process.env.BB_BIN || path.join(os.homedir(), ".bb", "bb");
 
 const CIRCUITS_DIR = path.join(__dirname, "..", "circuits");
+// Only used by tests now, to check in-process Pedersen against the circuit.
 const HASH_UTIL_DIR = path.join(CIRCUITS_DIR, "hash_util");
 const PAYROLL_DIR = path.join(CIRCUITS_DIR, "payroll_compliance");
 
-// Must match `global DEPTH` in circuits/payroll_compliance/src/main.nr.
+// Must match `global DEPTH` in circuits/payroll_compliance/src/main.nr
+// (test/depth.test.js fails if they drift apart).
 const MERKLE_DEPTH = 4;
 const MAX_ALLOWLIST_SIZE = 2 ** MERKLE_DEPTH;
 
@@ -46,8 +48,15 @@ const TRUST_PROXY_HOPS = intEnv("TRUST_PROXY_HOPS", 0);
 const JSON_BODY_LIMIT = "32kb";
 
 // A single nargo/bb invocation is killed after this long, so a hung process
-// can't hold a circuit mutex forever.
+// can't hold a proving slot forever.
 const SUBPROCESS_TIMEOUT_MS = intEnv("SUBPROCESS_TIMEOUT_MS", 120 * 1000);
+
+// Proofs that may run at once. Each `bb prove` is CPU- and memory-heavy, so
+// keep this near the number of cores you can spare.
+const MAX_CONCURRENT_PROOFS = intEnv("MAX_CONCURRENT_PROOFS", 2) || 1;
+
+// Allowlist trees kept in memory for repeat proofs against the same list.
+const TREE_CACHE_SIZE = intEnv("TREE_CACHE_SIZE", 100);
 
 // On SIGTERM/SIGINT, how long in-flight proofs get to finish before exit.
 const SHUTDOWN_TIMEOUT_MS = intEnv("SHUTDOWN_TIMEOUT_MS", 60 * 1000);
@@ -72,5 +81,7 @@ module.exports = {
   JSON_BODY_LIMIT,
   SUBPROCESS_TIMEOUT_MS,
   SHUTDOWN_TIMEOUT_MS,
+  MAX_CONCURRENT_PROOFS,
+  TREE_CACHE_SIZE,
   LOG_LEVEL,
 };

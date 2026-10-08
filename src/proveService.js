@@ -1,5 +1,6 @@
 const { buildAllowlistTree } = require("./merkle");
-const { hashPair, provePayrollCompliance } = require("./nargoRunner");
+const { provePayrollCompliance } = require("./prover");
+const { hashPair } = require("./pedersen");
 const { FIELD_MODULUS, hashProof, hashPublicInputs, toFieldHex } = require("./hash");
 const { PROOF_TYPES, MAX_ALLOWLIST_SIZE } = require("./config");
 

@@ -13,7 +13,7 @@ proveService.proveAndAnchor = async () => { proveCalls++; return { valid: true }
 
 const app = require("../src/server");
 const { createLogger } = require("../src/logger");
-const { run } = require("../src/nargoRunner");
+const { run } = require("../src/prover");
 
 const body = { recipientId: "42", amount: "1", proofType: "payroll", allowlist: ["42"], budgetCap: "10" };
 let server, base;

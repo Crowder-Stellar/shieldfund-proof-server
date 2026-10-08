@@ -1,5 +1,5 @@
-const { hashPair } = require("./nargoRunner");
-const { MERKLE_DEPTH, MAX_ALLOWLIST_SIZE } = require("./config");
+const { hashPair } = require("./pedersen");
+const { MERKLE_DEPTH, MAX_ALLOWLIST_SIZE, TREE_CACHE_SIZE } = require("./config");
 
 // recipientId "0" is reserved as the padding sentinel for unused allowlist
 // slots — real recipients must never be assigned id 0.
@@ -13,11 +13,33 @@ function leafOf(recipientId) {
   return hashPair(LEAF_DOMAIN, recipientId);
 }
 
-// Builds the fixed-depth (MERKLE_DEPTH) Merkle tree over an allowlist,
-// padding unused slots with the zero sentinel, using the same hash_util
-// pedersen_hash the payroll_compliance circuit recomputes internally.
-// Returns the root plus a lookup for each recipient's inclusion path.
+// Built trees, keyed by the allowlist (canonical decimal ids, in order) that
+// fully determines the root. Least-recently-used entries are evicted first.
+const treeCache = new Map();
+
+// Returns the tree for `allowlist`, reusing a cached one when the same
+// allowlist was proved against recently. Entries must already be canonical
+// (proveService's validateProveInput) so "42" and "0x2a" share one entry.
 async function buildAllowlistTree(allowlist) {
+  const key = allowlist.join(",");
+  let tree = treeCache.get(key);
+  if (tree) {
+    treeCache.delete(key); // re-insert to mark as most recently used
+  } else {
+    tree = buildTree(allowlist);
+    // Drop failed builds so the next request retries.
+    tree.catch(() => treeCache.delete(key));
+  }
+  treeCache.set(key, tree);
+  while (treeCache.size > TREE_CACHE_SIZE) treeCache.delete(treeCache.keys().next().value);
+  return tree;
+}
+
+// Builds the fixed-depth (MERKLE_DEPTH) Merkle tree over an allowlist,
+// padding unused slots with the zero sentinel, using the same pedersen_hash
+// the payroll_compliance circuit recomputes internally.
+// Returns the root plus a lookup for each recipient's inclusion path.
+async function buildTree(allowlist) {
   if (allowlist.length === 0) throw new Error("allowlist must not be empty");
   if (allowlist.length > MAX_ALLOWLIST_SIZE) {
     throw new Error(`allowlist exceeds MERKLE_DEPTH=${MERKLE_DEPTH} capacity of ${MAX_ALLOWLIST_SIZE}`);
@@ -67,4 +89,4 @@ async function buildAllowlistTree(allowlist) {
   return { root, pathFor };
 }
 
-module.exports = { buildAllowlistTree, PADDING_ID };
+module.exports = { buildAllowlistTree, PADDING_ID, treeCache };
