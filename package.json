@@ -4,9 +4,14 @@
   "private": true,
   "description": "Off-chain Noir proof server for ShieldFund's payroll/budget compliance ZK proofs — generates and locally verifies proofs, then anchors their hashes to the proof_registry Soroban contract.",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write . && eslint --fix ."
   },
   "dependencies": {
     "@aztec/bb.js": "5.0.0-nightly.20260522",
@@ -16,5 +21,13 @@
     "helmet": "^8.3.0",
     "js-sha3": "^0.13.0",
     "pino": "^10.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.12.0",
+    "prettier": "3.9.9",
+    "supertest": "7.3.0"
   }
 }

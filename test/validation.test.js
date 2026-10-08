@@ -7,11 +7,18 @@ const { FIELD_MODULUS } = require("../src/hash");
 // A 248-bit salt, like `openssl rand -hex 31` produces.
 const SALT = "0x1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79";
 const base = {
-  recipientId: "42", amount: "500000", proofType: "payroll",
-  allowlist: ["42", "7"], budgetCap: "1000000", budgetSalt: SALT,
+  recipientId: "42",
+  amount: "500000",
+  proofType: "payroll",
+  allowlist: ["42", "7"],
+  budgetCap: "1000000",
+  budgetSalt: SALT,
 };
 const rejects = (patch, pattern) =>
-  assert.throws(() => validateProveInput({ ...base, ...patch }), (e) => e instanceof ValidationError && pattern.test(e.message));
+  assert.throws(
+    () => validateProveInput({ ...base, ...patch }),
+    (e) => e instanceof ValidationError && pattern.test(e.message),
+  );
 
 test("canonicalises decimal, hex and number inputs to decimal strings", () => {
   const v = validateProveInput({ ...base, recipientId: "0x2a", amount: 500000, allowlist: ["0x2A", " 7 "] });
@@ -46,14 +53,19 @@ test("rejects non-integer, negative and malformed values instead of crashing", (
 test("rejects values that would silently wrap modulo the field", () => {
   rejects({ recipientId: FIELD_MODULUS.toString() }, /outside the BN254 scalar field/);
   rejects({ recipientId: (FIELD_MODULUS + 42n).toString() }, /outside the BN254 scalar field/);
-  assert.equal(validateProveInput({ ...base, recipientId: (FIELD_MODULUS - 1n).toString(), allowlist: ["1"] }).recipientId,
-    (FIELD_MODULUS - 1n).toString());
+  assert.equal(
+    validateProveInput({ ...base, recipientId: (FIELD_MODULUS - 1n).toString(), allowlist: ["1"] }).recipientId,
+    (FIELD_MODULUS - 1n).toString(),
+  );
 });
 
 test("amount and budgetCap must fit in u128", () => {
   rejects({ amount: (1n << 128n).toString() }, /amount must be less than 2\^128/);
   rejects({ budgetCap: (1n << 200n).toString() }, /budgetCap must be less than 2\^128/);
-  assert.equal(validateProveInput({ ...base, budgetCap: ((1n << 128n) - 1n).toString() }).budgetCap, ((1n << 128n) - 1n).toString());
+  assert.equal(
+    validateProveInput({ ...base, budgetCap: ((1n << 128n) - 1n).toString() }).budgetCap,
+    ((1n << 128n) - 1n).toString(),
+  );
 });
 
 test("allowlist entries are validated, bounded and de-duplicated", () => {

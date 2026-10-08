@@ -9,7 +9,10 @@ const { Writable } = require("node:stream");
 
 const proveService = require("../src/proveService");
 let proveCalls;
-proveService.proveAndAnchor = async () => { proveCalls++; return { valid: true }; };
+proveService.proveAndAnchor = async () => {
+  proveCalls++;
+  return { valid: true };
+};
 
 const app = require("../src/server");
 const { createLogger } = require("../src/logger");
@@ -24,7 +27,9 @@ before(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 after(() => server.close());
-beforeEach(() => { proveCalls = 0; });
+beforeEach(() => {
+  proveCalls = 0;
+});
 
 function prove({ key, payload = body, raw } = {}) {
   const headers = { "content-type": "application/json" };
@@ -81,9 +86,18 @@ test("security headers are set and x-powered-by is not", async () => {
 
 test("the logger redacts budget caps, salts and API keys", () => {
   let out = "";
-  const sink = new Writable({ write(chunk, _enc, cb) { out += chunk; cb(); } });
+  const sink = new Writable({
+    write(chunk, _enc, cb) {
+      out += chunk;
+      cb();
+    },
+  });
   const log = createLogger(sink, "info");
-  log.info({ budgetCap: "123456789", input: { budgetSalt: "987654321" }, req: { headers: { "x-api-key": "key-one" } } });
+  log.info({
+    budgetCap: "123456789",
+    input: { budgetSalt: "987654321" },
+    req: { headers: { "x-api-key": "key-one" } },
+  });
   assert.doesNotMatch(out, /123456789|987654321|key-one/);
   assert.match(out, /\[redacted\]/);
 });

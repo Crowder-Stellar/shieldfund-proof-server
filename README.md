@@ -79,24 +79,37 @@ Pinned versions (this circuit was built and tested against exactly these):
 
 | Tool | Version |
 |------|---------|
+| Node.js | `22` LTS (see `.nvmrc`) |
 | `nargo` (Noir) | `1.0.0-beta.22` |
 | `bb` (Barretenberg) | `5.0.0-nightly.20260522` |
+| `@noir-lang/noir_js` / `@aztec/bb.js` | same versions as `nargo` / `bb`, pinned exactly in `package.json` |
+
+The easiest way to get all of them is the [Docker image](#docker). To install locally, use the same
+pinned, checksum-verified downloads as CI and the Dockerfile (Linux x86_64):
 
 ```bash
-curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
-noirup -v 1.0.0-beta.22
+curl -fsSL -o nargo.tar.gz https://github.com/noir-lang/noir/releases/download/v1.0.0-beta.22/nargo-x86_64-unknown-linux-gnu.tar.gz
+echo "384c4fc800905b213e26aabd738a96a4a85b1a76ffc27fb19aeb6d33494a787b  nargo.tar.gz" | sha256sum -c -
+mkdir -p ~/.nargo/bin && tar xzf nargo.tar.gz -C ~/.nargo/bin
 
-curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/master/barretenberg/bbup/install | bash
-bbup -v 5.0.0-nightly.20260522
+curl -fsSL -o bb.tar.gz https://github.com/AztecProtocol/barretenberg/releases/download/v5.0.0-nightly.20260522/barretenberg-amd64-linux.tar.gz
+echo "d207ec90fbfa2fba24d7a47b7a75892ee052b7984252b866a4a0c1b5296e1571  bb.tar.gz" | sha256sum -c -
+mkdir -p ~/.bb && tar xzf bb.tar.gz -C ~/.bb
 ```
+
+Never pipe an install script from a moving branch (`main`/`master`) into `bash`.
 
 ## Quick start
 
 ```bash
-npm install
+nvm use            # Node 22, from .nvmrc
+npm ci
+export PROVE_API_KEYS="$(openssl rand -hex 32)"   # required, see "Auth, limits and errors"
 npm start
 # → http://localhost:4100
 ```
+
+The server reads its settings from environment variables; `.env.example` lists all of them with defaults.
 
 By default the server shells out to `~/.nargo/bin/nargo` and `~/.bb/bb`. Override with `NARGO_BIN=` /
 `BB_BIN=` env vars (see `.env.example`) if yours live elsewhere. Before the first proof the server runs
@@ -201,6 +214,61 @@ curl -X POST http://localhost:4100/api/address-to-field \
 
 `address` must be a valid Stellar account id (`G` prefix, 56 chars, correct StrKey checksum); anything else
 is a 400.
+
+---
+
+## Docker
+
+The image bundles Node 22, the pinned `nargo`/`bb` builds (checksum-verified), the compiled circuit and bb's
+CRS, so it proves without network access. It runs as the non-root `node` user with the app code read-only.
+
+```bash
+docker build -t shieldfund-proof-server .
+docker run --rm -p 4100:4100 \
+  -e PROVE_API_KEYS="$(openssl rand -hex 32)" \
+  -e TRUST_PROXY_HOPS=0 \
+  shieldfund-proof-server
+```
+
+Pass every other setting from `.env.example` with `-e` (or `--env-file`, keeping that file out of git).
+`docker stop` sends `SIGTERM`, which lets an in-flight proof finish before the container exits. The image is
+`linux/amd64` only, because the pinned toolchain checksums are for the x86_64 builds.
+
+---
+
+## Development
+
+```bash
+npm test          # all tests; the proof tests need nargo + bb installed
+npm run lint      # ESLint + Prettier check (CI fails on either)
+npm run format    # apply Prettier + ESLint fixes
+(cd circuits/payroll_compliance && nargo test)   # Noir circuit tests
+```
+
+CI runs the whitespace-padding and obfuscation guards, lint, the Noir tests and the full test suite (with
+real proofs) on every PR.
+
+---
+
+## Security
+
+Please report vulnerabilities privately as described in [`SECURITY.md`](SECURITY.md) — never in a public
+issue.
+
+What the server does to protect itself and its callers:
+
+- **Auth**: `/api/prove` requires an `X-API-Key` (`PROVE_API_KEYS`) and refuses everything if none are configured.
+- **Abuse limits**: per-IP and per-key rate limits, a 32kb body limit, a timeout on every `nargo`/`bb` run,
+  and a cap on concurrent proofs.
+- **Strict input validation**: every number is checked to be a non-negative integer in range before it reaches
+  the circuit (no silent wrap-around modulo the field), and recipient 0 and duplicate allowlist entries are
+  rejected.
+- **Secrets stay secret**: `budgetSalt` is required from the caller and never returned; request bodies are never
+  logged, and caps, salts and API keys are redacted from logs. 500s return only a request id.
+- **Supply chain**: toolchain downloads and the Docker base image are pinned by checksum/digest, GitHub
+  Actions are pinned to commit SHAs, Dependabot watches npm, Actions and Docker, and CI rejects long or
+  whitespace-padded lines and obfuscated code.
+- **Headers**: `helmet` defaults; `x-powered-by` is off.
 
 ---
 

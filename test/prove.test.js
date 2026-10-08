@@ -70,27 +70,47 @@ test("rejects unknown proofType before touching the circuit", async () => {
 });
 
 test("parallel proofs run in separate temp dirs and never touch tracked files (#40, #41)", async () => {
-  const { execFileSync } = require("node:child_process");
   const fs = require("node:fs");
   const os = require("node:os");
-  const repo = require("node:path").join(__dirname, "..");
-  const tracked = () => execFileSync("git", ["status", "--porcelain", "--", "circuits"], { cwd: repo, encoding: "utf8" });
+  const path = require("node:path");
+  // Every file under circuits/ except build output, with its contents.
+  const circuitsDir = path.join(__dirname, "..", "circuits");
+  const tracked = () =>
+    fs
+      .readdirSync(circuitsDir, { recursive: true })
+      .filter((f) => !f.split(path.sep).includes("target"))
+      .sort()
+      .map((f) => {
+        const full = path.join(circuitsDir, f);
+        return fs.statSync(full).isFile() ? `${f}:${fs.readFileSync(full, "utf8")}` : f;
+      })
+      .join("\n");
   const tempDirs = () => fs.readdirSync(os.tmpdir()).filter((d) => d.startsWith("shieldfund-proof-"));
   const statusBefore = tracked();
   const tempBefore = tempDirs();
 
-  const results = await Promise.all(["42", "7", "1001"].map((recipientId, i) => proveAndAnchor({
-    recipientId,
-    amount: String(100000 + i),
-    proofType: "payroll",
-    allowlist: ["42", "7", "1001"],
-    budgetCap: "1000000",
-    budgetSalt: SALT,
-  })));
+  const results = await Promise.all(
+    ["42", "7", "1001"].map((recipientId, i) =>
+      proveAndAnchor({
+        recipientId,
+        amount: String(100000 + i),
+        proofType: "payroll",
+        allowlist: ["42", "7", "1001"],
+        budgetCap: "1000000",
+        budgetSalt: SALT,
+      }),
+    ),
+  );
 
   // Each proof is for its own recipient/amount — no cross-talk between requests.
-  assert.deepEqual(results.map((r) => BigInt(r.recipientId)), [42n, 7n, 1001n]);
-  assert.deepEqual(results.map((r) => BigInt(r.amount)), [100000n, 100001n, 100002n]);
+  assert.deepEqual(
+    results.map((r) => BigInt(r.recipientId)),
+    [42n, 7n, 1001n],
+  );
+  assert.deepEqual(
+    results.map((r) => BigInt(r.amount)),
+    [100000n, 100001n, 100002n],
+  );
   assert.equal(new Set(results.map((r) => r.proofHash)).size, 3);
   assert.equal(tracked(), statusBefore);
   assert.deepEqual(tempDirs(), tempBefore);
