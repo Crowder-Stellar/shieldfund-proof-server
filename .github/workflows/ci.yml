@@ -82,6 +82,11 @@ jobs:
           (cd circuits/hash_util && nargo compile)
           (cd circuits/payroll_compliance && nargo compile)
 
+      - name: Test circuits
+        run: |
+          export PATH="$HOME/.nargo/bin:$PATH"
+          (cd circuits/payroll_compliance && nargo test)
+
       - name: Run tests
         run: |
           export PATH="$HOME/.nargo/bin:$HOME/.bb:$PATH"

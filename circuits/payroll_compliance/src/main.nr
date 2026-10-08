@@ -69,3 +69,118 @@ fn main(
         "unknown proof_type_id",
     );
 }
+
+// ---------------------------------------------------------------------------
+// Tests (`nargo test` in circuits/payroll_compliance). Each rejection test
+// starts from the inputs `valid_inputs_are_accepted` proves good and breaks
+// exactly one thing, so the failure can only come from that check.
+// ---------------------------------------------------------------------------
+
+global RECIPIENT: Field = 42;
+global SALT: Field = 777;
+global CAP: Field = 1000000;
+global PATH: [Field; DEPTH] = [11, 22, 33, 44];
+global INDEX: [bool; DEPTH] = [false, true, false, true];
+global TWO_POW_128: Field = 0x100000000000000000000000000000000;
+
+// Root of a tree containing `recipient_id` at the position given by PATH/INDEX,
+// built independently of main() so a broken main() can't agree with itself.
+fn root_for(recipient_id: Field) -> Field {
+    let mut current = std::hash::pedersen_hash([LEAF_DOMAIN, recipient_id]);
+    for i in 0..DEPTH {
+        current = if INDEX[i] {
+            std::hash::pedersen_hash([PATH[i], current])
+        } else {
+            std::hash::pedersen_hash([current, PATH[i]])
+        };
+    }
+    current
+}
+
+fn commit(budget_cap: Field, budget_salt: Field) -> Field {
+    std::hash::pedersen_hash([budget_cap, budget_salt])
+}
+
+// Proves `amount` against a correctly committed `budget_cap`, as `RECIPIENT`.
+fn prove_amount(amount: Field, budget_cap: Field, proof_type_id: Field) {
+    main(
+        root_for(RECIPIENT),
+        commit(budget_cap, SALT),
+        RECIPIENT,
+        amount,
+        proof_type_id,
+        PATH,
+        INDEX,
+        budget_cap,
+        SALT,
+    );
+}
+
+#[test]
+fn valid_inputs_are_accepted() {
+    prove_amount(500000, CAP, 0);
+}
+
+#[test]
+fn every_known_proof_type_is_accepted() {
+    prove_amount(500000, CAP, 0);
+    prove_amount(500000, CAP, 1);
+    prove_amount(500000, CAP, 2);
+}
+
+#[test]
+fn amount_equal_to_budget_cap_is_accepted() {
+    prove_amount(CAP, CAP, 0);
+}
+
+#[test]
+fn largest_u128_amount_and_cap_are_accepted() {
+    prove_amount(TWO_POW_128 - 1, TWO_POW_128 - 1, 0);
+}
+
+// #17: `amount as u128` keeps only the low 128 bits, so 2^128 + 1 would
+// compare as 1 and pass `<= CAP` without the assert_max_bit_size guard.
+#[test(should_fail)]
+fn amount_wrapping_past_u128_is_rejected() {
+    prove_amount(TWO_POW_128 + 1, CAP, 0);
+}
+
+#[test(should_fail)]
+fn amount_of_exactly_2_pow_128_is_rejected() {
+    // Truncates to 0, which is <= any cap.
+    prove_amount(TWO_POW_128, CAP, 0);
+}
+
+#[test(should_fail)]
+fn budget_cap_wrapping_past_u128_is_rejected() {
+    // A cap of 2^128 + 10 would truncate to 10 and still admit amount 5;
+    // a huge cap must be rejected, not silently shrunk.
+    prove_amount(5, TWO_POW_128 + 10, 0);
+}
+
+#[test(should_fail_with = "amount exceeds budget cap")]
+fn amount_over_budget_cap_is_rejected() {
+    prove_amount(CAP + 1, CAP, 0);
+}
+
+#[test(should_fail_with = "recipient not in allowlist")]
+fn non_member_is_rejected() {
+    // Same path, but the tree was built for RECIPIENT, not 43.
+    main(root_for(RECIPIENT), commit(CAP, SALT), 43, 500000, 0, PATH, INDEX, CAP, SALT);
+}
+
+#[test(should_fail_with = "unknown proof_type_id")]
+fn unknown_proof_type_is_rejected() {
+    prove_amount(500000, CAP, 3);
+}
+
+#[test(should_fail_with = "budget commitment mismatch")]
+fn wrong_salt_is_rejected() {
+    main(root_for(RECIPIENT), commit(CAP, SALT), RECIPIENT, 500000, 0, PATH, INDEX, CAP, SALT + 1);
+}
+
+#[test(should_fail_with = "budget commitment mismatch")]
+fn wrong_budget_cap_is_rejected() {
+    // Claiming a bigger cap than the one committed to.
+    main(root_for(RECIPIENT), commit(CAP, SALT), RECIPIENT, 2000000, 0, PATH, INDEX, 2000000, SALT);
+}

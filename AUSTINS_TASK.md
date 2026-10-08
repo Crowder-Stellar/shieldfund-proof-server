@@ -41,14 +41,14 @@ Priority: **P0** = now · **P1** = this sprint · **P2** = next sprint
   `amount as u128` and `budget_cap as u128` **truncate** to the low 128 bits. An `amount` of `2^128 + 1`
   passes the `amount <= budget_cap` check while the public input says something huge. Add
   `amount.assert_max_bit_size::<128>()` (and the same for `budget_cap`) before the cast.
-- [ ] **18. Add a Noir test proving #17 is fixed** (`#[test(should_fail)]` with an amount ≥ 2^128).
+- [x] **18. Add a Noir test proving #17 is fixed** (`#[test(should_fail)]` with an amount ≥ 2^128).
 - [x] **19. Reject recipient `0` in the circuit.** Add `assert(recipient_id != 0)`. Right now an allowlist
   with fewer than 16 entries has padding leaves of `pedersen([0, 0])`, so recipient `0` can prove
   membership in *any* non-full allowlist.
 - [x] **20. Domain-separate leaves from internal nodes.** Leaves are `pedersen([id, 0])` and nodes are
   `pedersen([l, r])` — same function, no domain tag. Hash leaves with a distinct tag (e.g.
   `pedersen([1, id])`) or use `pedersen_hash_with_separator`; update `hash_util` and `merkle.js` to match.
-- [ ] **21. Add Noir tests** for: non-member rejected, over-budget rejected, bad `proof_type_id` rejected,
+- [x] **21. Add Noir tests** for: non-member rejected, over-budget rejected, bad `proof_type_id` rejected,
   wrong salt rejected, boundary `amount == budget_cap` accepted.
 
 ## 3. Server input validation (P0/P1)
