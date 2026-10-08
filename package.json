@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "express": "^5.2.1",
-    "js-sha3": "^0.13.0"
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "js-sha3": "^0.13.0",
+    "pino": "^10.4.0"
   }
 }

@@ -4,7 +4,10 @@ const assert = require("node:assert/strict");
 // Stub the toolchain before proveService/server load it, so these tests are
 // fast and can force each failure mode. node --test runs each file in its
 // own process, so the stubs don't leak into prove.test.js.
+process.env.LOG_LEVEL = "silent";
+process.env.PROVE_API_KEYS = "test-key";
 const nargoRunner = require("../src/nargoRunner");
+const { logger } = require("../src/logger");
 const merkle = require("../src/merkle");
 
 const SECRET_PATH = "/home/runner/.bb/bb: corrupt srs at /srv/proof-server/circuits/payroll_compliance/target";
@@ -31,17 +34,19 @@ const body = {
 };
 
 let server, base, logged;
-const originalConsoleError = console.error;
+const originalLoggerError = logger.error;
 
 before(async () => {
-  console.error = (...args) => { logged.push(args.map(String).join(" ")); };
+  logger.error = (obj, msg) => {
+    logged.push(JSON.stringify({ ...obj, err: obj.err && obj.err.message }) + " " + msg);
+  };
   server = app.listen(0);
   await new Promise((r) => server.once("listening", r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
 after(() => {
-  console.error = originalConsoleError;
+  logger.error = originalLoggerError;
   server.close();
 });
 
@@ -49,7 +54,7 @@ async function prove(payload = body, raw) {
   logged = [];
   const res = await fetch(`${base}/api/prove`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-api-key": "test-key" },
     body: raw ?? JSON.stringify(payload),
   });
   return { res, json: await res.json() };

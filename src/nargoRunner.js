@@ -1,16 +1,25 @@
 const { execFile } = require("child_process");
 const fs = require("fs/promises");
 const path = require("path");
-const { NARGO_BIN, BB_BIN, HASH_UTIL_DIR, PAYROLL_DIR } = require("./config");
+const { NARGO_BIN, BB_BIN, HASH_UTIL_DIR, PAYROLL_DIR, SUBPROCESS_TIMEOUT_MS } = require("./config");
 const { createMutex } = require("./mutex");
 const { toFieldHex } = require("./hash");
 
 const hashUtilLock = createMutex();
 const payrollLock = createMutex();
 
-function run(bin, args, cwd) {
+function run(bin, args, cwd, timeout = SUBPROCESS_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
-    execFile(bin, args, { cwd, maxBuffer: 1024 * 1024 * 64 }, (err, stdout, stderr) => {
+    const options = { cwd, maxBuffer: 1024 * 1024 * 64, timeout, killSignal: "SIGKILL" };
+    execFile(bin, args, options, (err, stdout, stderr) => {
+      if (err && err.killed) {
+        const wrapped = new Error(`${path.basename(bin)} ${args[0]} timed out after ${timeout}ms`);
+        wrapped.assertion = null;
+        wrapped.stdout = stdout;
+        wrapped.stderr = stderr;
+        reject(wrapped);
+        return;
+      }
       if (err) {
         const assertion = extractAssertionMessage(stderr) || extractAssertionMessage(stdout);
         const wrapped = new Error(assertion || stderr || stdout || err.message);
@@ -128,4 +137,4 @@ async function provePayrollCompliance(inputs) {
   });
 }
 
-module.exports = { hashPair, provePayrollCompliance };
+module.exports = { hashPair, provePayrollCompliance, run };

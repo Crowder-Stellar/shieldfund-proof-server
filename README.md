@@ -107,6 +107,7 @@ curl http://localhost:4100/health
 ```bash
 curl -X POST http://localhost:4100/api/prove \
   -H 'content-type: application/json' \
+  -H "x-api-key: $PROVE_API_KEY" \
   -d '{
     "recipientId": "42",
     "amount": "500000",
@@ -153,6 +154,28 @@ guessable salt would let anyone brute-force `budgetCap` from the public `budget_
 back in the response to reuse the same `budget_commitment` for later proofs against the same budget
 category (reusing a *cap* with a *new* salt produces a different, equally valid commitment — the admin
 just has to know which one they published on-chain).
+
+#### Auth, limits and errors
+
+`/api/prove` requires an `X-API-Key` header matching one of the comma-separated keys in `PROVE_API_KEYS`
+(generate with `openssl rand -hex 32`; keep them out of git). With no keys configured the endpoint returns `503`
+for every request. It never runs unauthenticated.
+
+| Status | Meaning |
+|---|---|
+| `400` | Invalid input, malformed JSON, or a Noir `assert()` rejected the inputs |
+| `401` | Missing or unknown `X-API-Key` |
+| `413` | Body larger than 32kb |
+| `429` | Rate limit hit: `PROVE_RATE_LIMIT_PER_IP` / `PROVE_RATE_LIMIT_PER_KEY` requests per `PROVE_RATE_WINDOW_MS` (see the `RateLimit` response headers) |
+| `500` | Toolchain failure or a `nargo`/`bb` run over `SUBPROCESS_TIMEOUT_MS`. Returns only a `requestId`; details are in the server log |
+| `503` | No API keys configured, or the server is shutting down |
+
+Behind a reverse proxy, set `TRUST_PROXY_HOPS` (usually `1`) so per-IP limits see the real client address.
+
+Logs are JSON lines (pino) on stdout, one per request, with method, path, status, duration and request id.
+Request bodies are never logged, and `budgetCap`/`budgetSalt`/API keys are redacted if they ever appear in
+a log object. On `SIGTERM`/`SIGINT` the server stops accepting connections and lets an in-flight proof
+finish (up to `SHUTDOWN_TIMEOUT_MS`) before exiting.
 
 ### Address → Field helper
 
