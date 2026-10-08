@@ -5,8 +5,12 @@ const { MERKLE_DEPTH, MAX_ALLOWLIST_SIZE } = require("./config");
 // slots — real recipients must never be assigned id 0.
 const PADDING_ID = "0";
 
+// Domain tag for leaves, so a leaf hash can never equal an internal node
+// hash. Must match LEAF_DOMAIN in circuits/payroll_compliance/src/main.nr.
+const LEAF_DOMAIN = "1";
+
 function leafOf(recipientId) {
-  return hashPair(recipientId, "0");
+  return hashPair(LEAF_DOMAIN, recipientId);
 }
 
 // Builds the fixed-depth (MERKLE_DEPTH) Merkle tree over an allowlist,

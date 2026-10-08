@@ -17,6 +17,12 @@
 
 global DEPTH: u32 = 4; // supports up to 2^DEPTH = 16 allowlisted recipients
 
+// Leaves are pedersen_hash([LEAF_DOMAIN, recipient_id]); internal nodes are
+// pedersen_hash([left, right]). The tag keeps a leaf from ever equalling an
+// internal node, since a node's left input is a hash output, never 1.
+// Must match LEAF_DOMAIN in src/merkle.js.
+global LEAF_DOMAIN: Field = 1;
+
 fn main(
     merkle_root: pub Field,
     budget_commitment: pub Field,
@@ -30,7 +36,7 @@ fn main(
 ) {
     // 1. Merkle inclusion: recompute the root from the private leaf + path
     // and assert it matches the publicly committed allowlist root.
-    let leaf = std::hash::pedersen_hash([recipient_id, 0]);
+    let leaf = std::hash::pedersen_hash([LEAF_DOMAIN, recipient_id]);
     let mut current = leaf;
     for i in 0..DEPTH {
         let sibling = merkle_path[i];
