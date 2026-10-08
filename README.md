@@ -165,6 +165,9 @@ curl -X POST http://localhost:4100/api/address-to-field \
   -d '{"address": "GBJ5FP5UB4YUE2EONTPPSAGKZZGDETFZLEJXJRCALSYTJZIDVWAN3C7P"}'
 ```
 
+`address` must be a valid Stellar account id (`G` prefix, 56 chars, correct StrKey checksum); anything else
+is a 400.
+
 ---
 
 ## Known limitations (this is a hackathon-grade reference implementation, not production)
